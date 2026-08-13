@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2F6F5E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Budget Ledger">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Budget Ledger</title>
+<style>
+  :root {
+    --bg: #F7F5F1;
+    --surface: #FFFFFF;
+    --surface-2: #FBFAF7;
+    --ink: #1B1B18;
+    --ink-soft: #726E64;
+    --ink-faint: #A8A399;
+    --border: #E4E0D6;
+    --accent: #2F6F5E;
+    --accent-soft: #E8F0EC;
+    --negative: #B8402E;
+    --negative-soft: #FBEBE7;
+    --positive: #2F6F5E;
+    --radius: 10px;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --cat-fixed: #2F6F5E;
+    --cat-variable: #4C7EA8;
+    --cat-other: #C9922E;
+    --cat-loans: #B8402E;
+    --cat-savings: #8B6FB3;
+  }
+  html.dark {
+    --bg: #16171A;
+    --surface: #1E2023;
+    --surface-2: #212327;
+    --ink: #EDEBE5;
+    --ink-soft: #9C988E;
+    --ink-faint: #63615A;
+    --border: #313336;
+    --accent: #74B99A;
+    --accent-soft: #22322C;
+    --negative: #E2786A;
+    --negative-soft: #362323;
+    --positive: #74B99A;
+    --cat-fixed: #74B99A;
+    --cat-variable: #7DA9D6;
+    --cat-other: #DBAE5C;
+    --cat-loans: #E2786A;
+    --cat-savings: #B49CD6;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans);
+    -webkit-font-smoothing: antialiased; transition: background .25s ease, color .25s ease;
+    padding-bottom: 60px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 28px 20px 10px; }
+  header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+  .brand-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 4px; }
+  h1 { font-size: 22px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-soft); font-size: 13px; margin-top: 4px; }
+
+  .toggle {
+    width: 46px; height: 26px; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--surface-2); position: relative; cursor: pointer; flex-shrink: 0; padding: 0; margin-top: 2px;
+  }
+  .toggle::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+    border-radius: 50%; background: var(--accent); transition: transform .2s ease;
+  }
+  .toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  html.dark .toggle::after { transform: translateX(20px); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; }
+  .card-title { font-size: 13px; font-weight: 650; letter-spacing: .02em; }
+  .card-hint { font-size: 11px; color: var(--ink-faint); }
+
+  .expense-row {
+    padding: 12px 16px; border-top: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .expense-row-header { display: flex; justify-content: space-between; align-items: center; }
+  .cat-name { font-size: 14px; font-weight: 600; }
+  .expense-inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Layout variant supporting custom date row positioning */
+  .expense-inputs-grid.with-date { grid-template-columns: 1.2fr 1fr 1fr; }
+
+  .input-with-label { display: flex; flex-direction: column; gap: 4px; }
+  .input-sublabel { font-size: 10px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  input.amt, input.date-txt {
+    width: 100%; font-family: var(--sans); font-size: 13px; padding: 7px 8px;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; color: var(--ink);
+  }
+  input.amt { font-family: var(--mono); }
+  input.amt:focus, input.amt:focus-visible, input.date-txt:focus { outline: none; border-color: var(--accent); }
+  input:disabled { background: var(--bg); color: var(--ink-soft); cursor: not-allowed; border-style: dashed; }
+
+  .diff { font-family: var(--mono); font-size: 13px; font-weight: 600; text-align: right; }
+  .diff.pos { color: var(--positive); }
+  .diff.neg { color: var(--negative); }
+  .diff.zero { color: var(--ink-faint); }
+
+  .loan-row {
+    display: grid; grid-template-columns: 1.5fr 1fr 0.8fr 0.8fr auto; gap: 8px; align-items: flex-end;
+    padding: 12px 16px; border-top: 1px solid var(--border);
+  }
+  .loan-field { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+  input.loan-txt {
+    font-family: var(--sans); font-size: 13px; padding: 7px 8px; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: 6px; color: var(--ink); width: 100%;
+  }
+  input.loan-txt:focus { outline: none; border-color: var(--accent); }
+
+  .rm-btn {
+    width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--ink-soft); cursor: pointer; font-size: 16px;
+    display: inline-flex; align-items: center; justify-content: center; margin-bottom: 2px; flex-shrink: 0;
+  }
+  .rm-btn:hover { color: var(--negative); border-color: var(--negative); }
+  .add-loan-row { padding: 10px 16px; }
+
+  /* Buttons */
+  .add-btn {
+    font-family: var(--sans); font-size: 12.5px; color: var(--accent); background: none;
+    border: 1px dashed var(--border); border-radius: 6px; padding: 7px 12px; cursor: pointer; width: 100%;
+  }
+  .add-btn:hover { border-color: var(--accent); }
+
+  .action-btn-sm {
+    font-family: var(--sans); font-size: 11px; font-weight: 600; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid transparent; border-radius: 6px;
+    padding: 4px 10px; cursor: pointer;
+  }
+  .action-btn-sm.editing { background: var(--ink); color: var(--bg); }
+
+  .loan-total-row { display: flex; justify-content: space-between; padding: 10px 16px; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 13px; }
+  .savings-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding: 4px 16px 16px; }
+  .field-label { font-size: 11px; color: var(--ink-soft); margin-bottom: 5px; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .stat-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-faint); margin-bottom: 6px; }
+  .stat-val { font-family: var(--mono); font-size: 17px; font-weight: 600; }
+  .stamp { border: 1px dashed var(--border); border-radius: var(--radius); padding: 22px 20px; text-align: center; background: var(--surface); position: relative; margin-bottom: 20px; }
+  .stamp-label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 8px; }
+  .stamp-val { font-family: var(--mono); font-size: 34px; font-weight: 700; letter-spacing: -0.01em; }
+  .stamp-date { font-size: 11px; color: var(--ink-faint); margin-top: 8px; font-family: var(--mono); }
+  .actions { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+  .btn { flex: 1; font-family: var(--sans); font-size: 13px; font-weight: 600; padding: 12px 14px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); min-width: 140px; }
+  .btn-primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  html.dark .btn-primary { background: var(--ink); color: var(--bg); }
+  .btn-ghost { background: var(--surface); color: var(--ink-soft); }
+  .btn-primary.copied { background: var(--accent); border-color: var(--accent); color: #fff; }
+  footer { text-align: center; font-size: 11px; color: var(--ink-faint); padding: 10px 20px 30px; }
+
+  /* Dashboard */
+  .dash-block { margin-bottom: 18px; }
+  .dash-block:last-child { margin-bottom: 0; }
+  .dash-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+  .dash-label { font-size: 11.5px; font-weight: 650; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .03em; }
+  .dash-pct { font-family: var(--mono); font-size: 16px; font-weight: 700; }
+  .dash-subtext { font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+  .bar-track { height: 9px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width .3s ease; border-radius: 5px; }
+  .stack-bar { display: flex; height: 14px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); background: var(--surface-2); }
+  .stack-seg { height: 100%; transition: width .3s ease; }
+  .alloc-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
+  .alloc-legend-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-soft); }
+  .alloc-swatch { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+  #toggleDetailBtn { width: 100%; margin-bottom: 16px; }
+
+  /* Fund Allocation bar graph (one bar per category) */
+  .alloc-bar-row { margin-bottom: 9px; }
+  .alloc-bar-row:last-child { margin-bottom: 0; }
+  .alloc-bar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 11.5px; }
+  .alloc-bar-name { display: flex; align-items: center; gap: 6px; color: var(--ink-soft); font-weight: 600; }
+  .alloc-bar-val { font-family: var(--mono); color: var(--ink); }
+  .alloc-bar-track { height: 10px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; }
+  .alloc-bar-fill { height: 100%; border-radius: 5px; transition: width .3s ease; }
+
+  /* Category icons */
+  .cat-icon { margin-right: 5px; }
+
+  /* Severity icon on due dates (paid / due soon / overdue) */
+  .severity-icon { margin-left: 6px; font-size: 12px; }
+
+  /* Salary / Expenses Paid / Spending Limit — highlighted dashboard block */
+  .salary-highlight-block {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;
+    background: var(--accent-soft); border: 1px solid var(--accent); border-radius: var(--radius);
+    padding: 14px 16px; margin-bottom: 6px;
+  }
+  .salary-col { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .salary-col-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); font-weight: 700; white-space: nowrap; }
+  .salary-col-val { font-family: var(--mono); font-size: 21px; font-weight: 700; color: var(--ink); line-height: 1.1; }
+  .salary-input-big {
+    font-family: var(--mono); font-size: 21px; font-weight: 700; padding: 4px 6px; width: 100%;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--ink);
+  }
+  .salary-input-big:focus { outline: none; border-color: var(--accent); }
+  @media (max-width: 600px) {
+    .salary-highlight-block { grid-template-columns: 1fr; gap: 12px; }
+  }
+
+  /* Undo toast */
+  .undo-toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(12px);
+    background: var(--ink); color: var(--bg); font-family: var(--sans); font-size: 13px;
+    padding: 10px 14px; border-radius: 8px; display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18); z-index: 999; opacity: 0; pointer-events: none;
+    transition: opacity .18s ease, transform .18s ease; max-width: 90vw;
+  }
+  .undo-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  .undo-toast-msg { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .undo-toast-btn {
+    font-family: var(--sans); font-size: 12.5px; font-weight: 700; color: var(--accent);
+    background: none; border: none; cursor: pointer; flex-shrink: 0; text-decoration: underline;
+  }
+  html.dark .undo-toast-btn { color: var(--accent); }
+
+  /* Other Expenses */
+  .oe-entry-row { padding: 9px 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; }
+  .oe-log-form { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+  .oe-log-form input.loan-txt { flex: 2; min-width: 140px; }
+  .oe-log-form input.amt { flex: 1; min-width: 90px; }
+  .oe-log-form .add-btn { width: auto; white-space: nowrap; }
+
+  /* Credit Card & Online Shopping — 3 side-by-side boxes */
+  .cc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding: 12px 16px 16px; }
+  .cc-box {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 30px 12px 12px; display: flex; flex-direction: column; gap: 8px; position: relative; min-width: 0;
+  }
+  .cc-box.crossed-out { opacity: 0.5; }
+  .cc-box.crossed-out .cc-name, .cc-box.crossed-out .cc-due { text-decoration: line-through; }
+  .cc-name { font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 5px; }
+  .cc-due { font-size: 10.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .03em; }
+  .cc-crossout-btn {
+    position: absolute; top: 8px; right: 8px; font-size: 10px; line-height: 1; color: var(--ink-faint);
+    background: none; border: 1px solid var(--border); border-radius: 5px; padding: 4px 5px; cursor: pointer;
+  }
+  .cc-crossout-btn:hover { color: var(--negative); border-color: var(--negative); }
+  .cc-crossout-btn.active { color: var(--negative); border-color: var(--negative); background: var(--negative-soft); }
+  .cc-note { font-size: 11px; color: var(--ink-faint); font-style: italic; padding-top: 2px; }
+
+  @media (max-width: 600px) {
+    .expense-inputs-grid.with-date { grid-template-columns: 1fr; gap: 8px; }
+    .loan-row { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .loan-field:nth-child(1) { grid-column: span 2; }
+    .loan-field:nth-child(4) { grid-column: span 1; }
+    .rm-btn { grid-column: span 2; width: 100%; margin-top: 4px; }
+    .stat-grid { grid-template-columns: 1fr; }
+    .savings-grid { grid-template-columns: 1fr; }
+    .oe-log-form { flex-direction: column; }
+    .oe-log-form input.amt, .oe-log-form .add-btn { flex: 1; width: 100%; }
+    .cc-grid { grid-template-columns: 1fr; }
+  }
+
+
+  /* ===== PHONE APP / PWA LAYOUT ===== */
+  body { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+  .wrap { max-width: 760px; padding-top: 22px; }
+  header { position: sticky; top: 0; z-index: 50; margin: -22px -20px 18px; padding: 18px 20px 14px; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+  .app-shell-title { display:flex; align-items:center; gap:10px; }
+  .app-logo { width:38px; height:38px; border-radius:11px; box-shadow:0 4px 12px rgba(0,0,0,.12); flex:0 0 auto; }
+  .mobile-nav { position:fixed; left:0; right:0; bottom:0; z-index:1000; display:grid; grid-template-columns:repeat(4,1fr); gap:4px; padding:8px 10px calc(8px + env(safe-area-inset-bottom)); background:color-mix(in srgb, var(--surface) 94%, transparent); border-top:1px solid var(--border); box-shadow:0 -5px 22px rgba(0,0,0,.08); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
+  .mobile-nav button { border:0; background:transparent; color:var(--ink-soft); border-radius:12px; padding:7px 3px 6px; font:600 10px var(--sans); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .mobile-nav button .nav-icon { font-size:20px; line-height:1; }
+  .mobile-nav button.active { color:var(--accent); background:var(--accent-soft); }
+  .mobile-nav button:active { transform:scale(.96); }
+  .mobile-action-fab { position:fixed; right:18px; bottom:86px; z-index:900; width:52px; height:52px; border-radius:50%; border:0; background:var(--ink); color:var(--bg); font-size:24px; box-shadow:0 8px 22px rgba(0,0,0,.2); cursor:pointer; }
+  .mobile-nav + .mobile-action-fab { display:block; }
+  .card { border-radius:16px; }
+  .stat { border-radius:14px; }
+  .btn { min-height:46px; border-radius:12px; }
+  input.amt, input.date-txt, input.loan-txt, select { min-height:42px; font-size:16px !important; }
+  .action-btn-sm, .add-btn, .rm-btn { min-height:40px; }
+  .salary-input-big { min-height:48px; }
+  #dashboardCard { scroll-margin-top:90px; }
+  #otherExpensesCard, #fixedRows, #fixedLoanContainer, #ccGrid, #expenseRows, #savingsPlanned { scroll-margin-top:90px; }
+  @media (min-width: 701px) {
+    .mobile-nav, .mobile-action-fab { display:none !important; }
+    body { padding-bottom:60px; }
+  }
+  @media (max-width: 600px) {
+    .wrap { padding:0 12px 10px; }
+    header { margin:0 -12px 14px; padding:14px 14px 12px; }
+    h1 { font-size:20px; }
+    .sub { font-size:12px; max-width:250px; }
+    .brand-eyebrow { font-size:9px; }
+    .card-head { padding:14px 14px 10px; }
+    .expense-row { padding:12px 14px; }
+    .savings-grid, .cc-grid { padding-left:14px; padding-right:14px; }
+    .salary-highlight-block { padding:13px 14px; }
+    .stamp-val { font-size:30px; }
+    .actions { margin-bottom:18px; }
+    .actions .btn { flex:1 1 100%; }
+    #monthSelector { max-width:170px; }
+    .mobile-action-fab { display:block; }
+  }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="app-shell-title">
+      <img class="app-logo" src="icon.svg" alt="Budget Ledger">
+      <div>
+        <p class="brand-eyebrow">Personal Finance Manager</p>
+        <h1>Budget Ledger</h1>
+        <p class="sub">Plan, track, save, and stay on top of your monthly money.</p>
+      </div>
+    </div>
+    <button class="toggle" id="modeToggle" aria-pressed="false" aria-label="Toggle dark mode"></button>
+  </header>
+
+  <!-- MONTH SELECTION HISTORY TOOLBAR -->
+  <div class="card" style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface-2); flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <label for="monthSelector" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--ink-soft);">Ledger History:</label>
+      <select id="monthSelector" style="font-family: var(--sans); font-size: 13px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); cursor: pointer;"></select>
+      <button class="rm-btn" id="deleteHistoryBtn" title="Delete this archived month" type="button" style="width:30px; height:30px; font-size:14px; display:none;">🗑</button>
+    </div>
+    <button class="action-btn-sm" id="allowNotificationsBtn" style="font-size: 11px;">🔔 Enable Due Alarms</button>
+  </div>
+
+  <!-- DASHBOARD (always-on summary view) -->
+  <div class="card" id="dashboardCard">
+    <div class="card-head">
+      <div>
+        <span class="card-title">Dashboard</span>
+        <div class="card-hint" style="margin-top:2px;">This month at a glance</div>
+      </div>
+    </div>
+    <div style="padding: 4px 16px 18px;">
+      <div class="dash-block">
+        <div class="salary-highlight-block">
+          <div class="salary-col">
+            <span class="salary-col-label">Salary</span>
+            <input class="salary-input-big" id="salaryInput" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0">
+          </div>
+          <div class="salary-col">
+            <span class="salary-col-label">Expenses Paid</span>
+            <div class="salary-col-val" id="dashExpensesPaid">₱0</div>
+          </div>
+          <div class="salary-col">
+            <span class="salary-col-label">Spending Limit</span>
+            <div class="salary-col-val" id="dashSpendingLimit">₱0</div>
+          </div>
+        </div>
+        <div class="dash-subtext" id="dashRemaining"></div>
+      </div>
+      <div class="dash-block">
+        <div class="dash-row">
+          <span class="dash-label">Bills Paid</span>
+          <span class="dash-pct" id="dashBillsPct">0%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="dashBillsBar"></div></div>
+        <div class="dash-subtext" id="dashBillsSub">0 of 0 items paid</div>
+      </div>
+      <div class="dash-block">
+        <div class="dash-row"><span class="dash-label">Fund Allocation</span></div>
+        <div id="allocBars"></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-ghost" id="toggleDetailBtn">Show Full Breakdown ▾</button>
+
+  <div id="detailWrap">
+
+    <!-- OTHER EXPENSES: log-style category, top of Fixed section -->
+    <div class="card" id="otherExpensesCard">
+      <div class="card-head">
+        <div>
+          <span class="card-title">Other Expenses</span>
+          <div class="card-hint" style="margin-top:2px;">Log ad-hoc spending as it happens</div>
+        </div>
+        <span class="diff" id="otherDiff">₱0</span>
+      </div>
+      <div style="padding: 0 16px 12px; display:flex; align-items:flex-end; justify-content:space-between; gap:12px;">
+        <div class="input-with-label" style="max-width:220px;">
+          <span class="input-sublabel">Planned</span>
+          <input class="amt" id="otherPlanned" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0">
+        </div>
+        <div class="input-with-label" style="text-align:right; align-items:flex-end;">
+          <span class="input-sublabel">Total Spent</span>
+          <div id="otherTotalSpent" style="font-family:var(--mono); font-size:15px; font-weight:600; padding:7px 2px;">₱0</div>
+        </div>
+      </div>
+      <div id="otherExpenseEntries"></div>
+      <div class="oe-log-form">
+        <input class="loan-txt" id="otherExpenseName" type="text" placeholder="What did you spend on? e.g. Fast food">
+        <input class="amt" id="otherExpenseAmt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Cost">
+        <button class="add-btn" id="addOtherExpenseBtn">+ Log expense</button>
+      </div>
+    </div>
+
+    <!-- FIXED AMOUNTS & FIXED LOANS PROFILE CARD -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <span class="card-title">Fixed Amounts</span>
+          <div class="card-hint" style="margin-top:2px;">Locked commitments & due dates</div>
+        </div>
+        <button class="action-btn-sm" id="editFixedBtn">Edit Locked Fields</button>
+      </div>
+      <div id="fixedRows"></div>
+      <div id="fixedLoanContainer">
+        <div style="padding: 10px 16px 4px; font-size: 11px; font-weight:700; text-transform:uppercase; color:var(--ink-soft); letter-spacing:0.04em;">Fixed Loan Registry</div>
+        <div id="loanRows"></div>
+        <div class="add-loan-row"><button class="add-btn" id="addLoanBtn" disabled>+ Add custom loan item</button></div>
+      </div>
+      <div class="loan-total-row"><span style="color:var(--ink-soft)">Total Fixed Loan Commitment</span><span id="loanTotalVal">₱0</span></div>
+    </div>
+
+    <!-- CREDIT CARD & ONLINE SHOPPING CARD -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <span class="card-title">Credit Card &amp; Online Shopping</span>
+          <div class="card-hint" style="margin-top:2px;">Amount owed varies every month — cross out if it doesn't apply</div>
+        </div>
+      </div>
+      <div class="cc-grid" id="ccGrid"></div>
+    </div>
+
+    <!-- VARIABLE EXPENSES CARD -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Variable Expenses</span>
+        <span class="card-hint">Flexible monthly adjustments</span>
+      </div>
+      <div id="expenseRows"></div>
+      <div class="add-loan-row"><button class="add-btn" id="addExpenseBtn">+ Add another category</button></div>
+    </div>
+
+    <!-- SAVINGS TRACKING CARD -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Savings Allocation</span>
+        <span class="card-hint">Set aside this month</span>
+      </div>
+      <div class="savings-grid">
+        <div>
+          <div class="field-label">Planned</div>
+          <input class="amt" id="savingsPlanned" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0">
+        </div>
+        <div>
+          <div class="field-label">Actually saved</div>
+          <input class="amt" id="savingsActual" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0">
+        </div>
+        <div>
+          <div class="field-label">Due Date</div>
+          <input class="date-txt" id="savingsDueDate" type="text" placeholder="e.g. 30th">
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- /detailWrap -->
+
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-label">Total Planned</div><div class="stat-val" id="statPlanned">₱0</div></div>
+    <div class="stat"><div class="stat-label">Total Actual</div><div class="stat-val" id="statActual">₱0</div></div>
+    <div class="stat"><div class="stat-label">Budget Variance</div><div class="stat-val" id="statVariance">₱0</div></div>
+    <div class="stat"><div class="stat-label">Loan Payments</div><div class="stat-val" id="statLoans">₱0</div></div>
+  </div>
+  <div class="dash-subtext" style="margin: -10px 0 16px; text-align:center;">Planned / Actual / Variance reflect Variable + Other Expenses only (Fixed bills &amp; Loans excluded) — this is what measures your savings performance.</div>
+
+  <div class="stamp">
+    <div class="stamp-label">Net Amount Saved This Month</div>
+    <div class="stamp-val" id="netSaved">₱0</div>
+    <div class="stamp-date" id="stampDate"></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="exportBtn">Copy for Excel</button>
+    <button class="btn btn-ghost" id="newMonthBtn">New Month</button>
+  </div>
+
+  <footer>Saved automatically in this browser. Change months above to review historic accounts.</footer>
+</div>
+
+<script>
+
+  const VARIABLE_CATS = ["Electricity", "Water", "Groceries", "Market"];
+  const FIXED_CATS = ["Parking", "Internet", "Rent"];
+  const CREDIT_CARD_DEFAULTS = [
+    { name: "Tiktok Shop", dueDate: "1st" },
+    { name: "Spaylater", dueDate: "15th" },
+    { name: "Salmon (Credit Card)", dueDate: "28th" }
+  ];
+  const STORE_KEY = "budgetLedgerData_v3";
+  const LEGACY_STORE_KEY = "budgetLedgerData_v2";
+
+  // Category name -> icon, matched case-insensitively. Falls back to a generic tag icon.
+  const CATEGORY_ICONS = {
+    "electricity": "⚡",
+    "electric": "⚡",
+    "water": "💧",
+    "groceries": "🛒",
+    "grocery": "🛒",
+    "market": "🛒",
+    "internet": "🌐",
+    "wifi": "🌐",
+    "rent": "🏠",
+    "parking": "🚗",
+    "gas": "⛽",
+    "fuel": "⛽",
+    "phone": "📱",
+    "mobile": "📱",
+    "insurance": "🛡️",
+    "subscription": "📺",
+    "streaming": "📺",
+    "food": "🍽️",
+    "transport": "🚌",
+    "transportation": "🚌",
+    "medical": "💊",
+    "health": "💊",
+    "gym": "🏋️",
+    "tuition": "🎓",
+    "school": "🎓",
+    "cable": "📺"
+  };
+  function getCategoryIcon(name) {
+    const key = (name || "").trim().toLowerCase();
+    if (CATEGORY_ICONS[key]) return CATEGORY_ICONS[key];
+    const found = Object.keys(CATEGORY_ICONS).find(k => key.includes(k));
+    return found ? CATEGORY_ICONS[found] : "🔹";
+  }
+
+  function defaultState() {
+    return {
+      dark: false,
+      isEditingFixed: false,
+      showDetails: false,
+      salary: "",
+      expenses: VARIABLE_CATS.map(name => ({ name, planned: "", actual: "", dueDate: "" })),
+      fixedAmounts: FIXED_CATS.map(name => ({ name, planned: "", actual: "", dueDate: "" })),
+      creditCards: CREDIT_CARD_DEFAULTS.map(c => ({ name: c.name, dueDate: c.dueDate, amount: "", actualAmount: "", crossedOut: false })),
+      otherExpenses: { planned: "", entries: [] },
+      savingsPlanned: "",
+      savingsActual: "",
+      savingsDueDate: "",
+      loans: [{ name: "", amount: "", dueDate: "", progress: "", actualAmount: "" }]
+    };
+  }
+
+  // Bring forward data from the previous version of this app (no Other Expenses log, no dashboard prefs)
+  function migrateLegacy(parsedV2) {
+    const base = defaultState();
+    const legacyExpenses = Array.isArray(parsedV2.expenses) ? parsedV2.expenses : [];
+    const otherLegacy = legacyExpenses.find(e => (e.name || '').toLowerCase().trim() === 'other expenses');
+    const keptExpenses = legacyExpenses.filter(e => (e.name || '').toLowerCase().trim() !== 'other expenses');
+    return Object.assign(base, {
+      dark: !!parsedV2.dark,
+      expenses: keptExpenses.length ? keptExpenses.map(e => ({ name: e.name, planned: e.planned || "", actual: e.actual || "", dueDate: e.dueDate || "" })) : base.expenses,
+      fixedAmounts: (Array.isArray(parsedV2.fixedAmounts) && parsedV2.fixedAmounts.length) ? parsedV2.fixedAmounts : base.fixedAmounts,
+      creditCards: base.creditCards,
+      otherExpenses: { planned: otherLegacy ? (otherLegacy.planned || "") : "", entries: [] },
+      savingsPlanned: parsedV2.savingsPlanned || "",
+      savingsActual: parsedV2.savingsActual || "",
+      loans: (Array.isArray(parsedV2.loans) && parsedV2.loans.length) ? parsedV2.loans : base.loans
+    });
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const base = defaultState();
+        return Object.assign(base, parsed, {
+          expenses: (Array.isArray(parsed.expenses) && parsed.expenses.length) ? parsed.expenses : base.expenses,
+          fixedAmounts: (Array.isArray(parsed.fixedAmounts) && parsed.fixedAmounts.length) ? parsed.fixedAmounts : base.fixedAmounts,
+          creditCards: (Array.isArray(parsed.creditCards) && parsed.creditCards.length) ? parsed.creditCards : base.creditCards,
+          loans: (Array.isArray(parsed.loans) && parsed.loans.length) ? parsed.loans : base.loans,
+          otherExpenses: (parsed.otherExpenses && Array.isArray(parsed.otherExpenses.entries)) ? parsed.otherExpenses : base.otherExpenses,
+          isEditingFixed: false
+        });
+      }
+      const legacyRaw = localStorage.getItem(LEGACY_STORE_KEY);
+      if (legacyRaw) return migrateLegacy(JSON.parse(legacyRaw));
+      return defaultState();
+    } catch (e) { return defaultState(); }
+  }
+
+  let state = loadState();
+
+  function save() {
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  }
+
+  function num(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+
+  function fmt(n, showSign) {
+    const rounded = Math.round(n * 100) / 100;
+    const abs = Math.abs(rounded).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    if (rounded < 0) return "-₱" + abs;
+    if (showSign && rounded > 0) return "+₱" + abs;
+    return "₱" + abs;
+  }
+
+  function diffClass(n) {
+    if (n > 0) return "pos";
+    if (n < 0) return "neg";
+    return "zero";
+  }
+
+  /* --- UNDO TOAST: brief "Removed ✕ Undo" affordance for destructive removals --- */
+  let undoToastEl = null;
+  let undoToastTimer = null;
+  function showUndoToast(message, onUndo, duration = 6000) {
+    if (!undoToastEl) {
+      undoToastEl = document.createElement('div');
+      undoToastEl.className = 'undo-toast';
+      document.body.appendChild(undoToastEl);
+    }
+    clearTimeout(undoToastTimer);
+    undoToastEl.innerHTML = `
+      <span class="undo-toast-msg">${message} ✕</span>
+      <button class="undo-toast-btn" type="button">Undo</button>
+    `;
+    const undoBtn = undoToastEl.querySelector('.undo-toast-btn');
+    const dismiss = () => { undoToastEl.classList.remove('show'); };
+    undoBtn.addEventListener('click', () => {
+      clearTimeout(undoToastTimer);
+      dismiss();
+      onUndo();
+    }, { once: true });
+    requestAnimationFrame(() => undoToastEl.classList.add('show'));
+    undoToastTimer = setTimeout(dismiss, duration);
+  }
+
+  const fixedRowsEl = document.getElementById('fixedRows');
+  const expenseRowsEl = document.getElementById('expenseRows');
+  const ccGridEl = document.getElementById('ccGrid');
+  const loanRowsEl = document.getElementById('loanRows');
+  const editFixedBtn = document.getElementById('editFixedBtn');
+  const addLoanBtn = document.getElementById('addLoanBtn');
+  const addExpenseBtn = document.getElementById('addExpenseBtn');
+
+  function isPaidPair(planned, actual) {
+    return num(actual) > 0 && num(actual) === num(planned);
+  }
+
+  // Variable expenses have no Mark Paid button anymore (Planned vs Actual is the savings
+  // metric), so "logged" here just means an actual amount has been entered for the month.
+  function isVarLogged(exp) {
+    return num(exp.actual) > 0;
+  }
+
+  function isCreditPaid(cc) {
+    return num(cc.actualAmount) > 0 && num(cc.actualAmount) === num(cc.amount);
+  }
+
+  // Shared due-date parsing + prioritization, used by both sorting and the overdue-highlight engine
+  function extractDayNum(str) {
+    if (!str) return null;
+    const match = str.match(/\d+/);
+    if (!match) return null;
+    const parsed = parseInt(match[0], 10);
+    return (parsed >= 1 && parsed <= 31) ? parsed : null;
+  }
+
+  // Lower rank = shown first. Overdue-unpaid first (most overdue first), then upcoming-unpaid
+  // (soonest first), then unpaid-with-no-date, then anything already paid goes to the bottom.
+  function getDueSortRank(dueDateStr, isPaidFlag) {
+    const currentDay = new Date().getDate();
+    const day = extractDayNum(dueDateStr);
+    if (isPaidFlag) return { bucket: 3, order: day == null ? 999 : day };
+    if (day == null) return { bucket: 2, order: 0 };
+    if (day < currentDay) return { bucket: 0, order: -(currentDay - day) };
+    return { bucket: 1, order: day - currentDay };
+  }
+
+  function compareDueRank(a, b) {
+    if (a.bucket !== b.bucket) return a.bucket - b.bucket;
+    return a.order - b.order;
+  }
+
+  function dueSortedIndices(items, getDueDate, getIsPaid) {
+    return items.map((item, i) => i).sort((a, b) => {
+      const ra = getDueSortRank(getDueDate(items[a]), getIsPaid(items[a]));
+      const rb = getDueSortRank(getDueDate(items[b]), getIsPaid(items[b]));
+      return compareDueRank(ra, rb);
+    });
+  }
+
+  function renderFixedSection() {
+    fixedRowsEl.innerHTML = "";
+    const order = dueSortedIndices(state.fixedAmounts, f => f.dueDate, f => isPaidPair(f.planned, f.actual));
+    order.forEach(i => {
+      const fix = state.fixedAmounts[i];
+      const paid = isPaidPair(fix.planned, fix.actual);
+      const planned = num(fix.planned);
+      const actual = paid ? planned : 0;
+      const diff = planned - actual;
+
+      const row = document.createElement('div');
+      row.className = 'expense-row';
+      row.innerHTML = `
+        <div class="expense-row-header">
+          <span class="cat-name"><span class="cat-icon">${getCategoryIcon(fix.name)}</span>${fix.name} <span style="font-size:11px; font-weight:normal; color:var(--ink-faint);">(Fixed)</span><span class="severity-icon"></span></span>
+          <span class="diff ${diffClass(diff)}" id="fixed-diff-${i}">${fmt(diff, true)}</span>
+        </div>
+        <div class="expense-inputs-grid" style="grid-template-columns: 1fr 1fr auto; align-items: flex-end;">
+          <div class="input-with-label">
+            <span class="input-sublabel">Due Date</span>
+            <input class="date-txt fixed-date-input" type="text" placeholder="e.g. 15th" value="${fix.dueDate || ''}" ${state.isEditingFixed ? '' : 'disabled'}>
+          </div>
+          <div class="input-with-label">
+            <span class="input-sublabel">Amount to Pay</span>
+            <input class="amt fixed-planned-input" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="${fix.planned}" ${state.isEditingFixed ? '' : 'disabled'}>
+          </div>
+          <div class="input-with-label">
+            <button class="action-btn-sm paid-toggle-btn ${paid ? 'editing' : ''}" type="button" style="height:34px; padding:0 16px;">
+              ${paid ? 'Paid ✓' : 'Mark Paid'}
+            </button>
+          </div>
+        </div>
+      `;
+
+      const dateIn = row.querySelector('.fixed-date-input');
+      const plannedIn = row.querySelector('.fixed-planned-input');
+      const paidBtn = row.querySelector('.paid-toggle-btn');
+
+      dateIn.addEventListener('input', () => { fix.dueDate = dateIn.value; save(); });
+
+      plannedIn.addEventListener('input', () => {
+        fix.planned = plannedIn.value;
+        if (paidBtn.classList.contains('editing')) fix.actual = plannedIn.value;
+        save();
+        const curDiff = num(fix.planned) - num(fix.actual);
+        const diffEl = document.getElementById(`fixed-diff-${i}`);
+        if (diffEl) { diffEl.textContent = fmt(curDiff, true); diffEl.className = `diff ${diffClass(curDiff)}`; }
+        recalc();
+      });
+
+      paidBtn.addEventListener('click', () => {
+        const currentlyPaid = paidBtn.classList.contains('editing');
+        if (currentlyPaid) {
+          paidBtn.classList.remove('editing'); paidBtn.textContent = "Mark Paid"; fix.actual = "0";
+        } else {
+          paidBtn.classList.add('editing'); paidBtn.textContent = "Paid ✓"; fix.actual = fix.planned || "0";
+        }
+        save();
+        const curDiff = num(fix.planned) - num(fix.actual);
+        const diffEl = document.getElementById(`fixed-diff-${i}`);
+        if (diffEl) { diffEl.textContent = fmt(curDiff, true); diffEl.className = `diff ${diffClass(curDiff)}`; }
+        recalc();
+      });
+
+      fixedRowsEl.appendChild(row);
+    });
+  }
+
+  function renderExpenses() {
+    expenseRowsEl.innerHTML = "";
+    const order = dueSortedIndices(state.expenses, e => e.dueDate, e => isVarLogged(e));
+    order.forEach(i => {
+      const exp = state.expenses[i];
+      const planned = num(exp.planned);
+      const actual = num(exp.actual);
+      const diff = planned - actual;
+
+      const row = document.createElement('div');
+      row.className = 'expense-row';
+      row.innerHTML = `
+        <div class="expense-row-header">
+          <span class="cat-name"><span class="cat-icon">${getCategoryIcon(exp.name)}</span>${exp.name}<span class="severity-icon"></span></span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="diff ${diffClass(diff)}" id="diff-${i}">${fmt(diff, true)}</span>
+            <button class="rm-btn" title="Remove category" type="button" style="width:24px;height:24px;font-size:13px;margin-bottom:0;">×</button>
+          </div>
+        </div>
+        <div class="expense-inputs-grid with-date">
+          <div class="input-with-label">
+            <span class="input-sublabel">Due Date</span>
+            <input class="date-txt variable-date-input" type="text" placeholder="e.g. 24th" value="${exp.dueDate || ''}">
+          </div>
+          <div class="input-with-label">
+            <span class="input-sublabel">Planned</span>
+            <input class="amt planned-input" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="${exp.planned}">
+          </div>
+          <div class="input-with-label">
+            <span class="input-sublabel">Actual Amount</span>
+            <input class="amt actual-input" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="${exp.actual}">
+          </div>
+        </div>
+      `;
+
+      const dateInput = row.querySelector('.variable-date-input');
+      const plannedInput = row.querySelector('.planned-input');
+      const actualInput = row.querySelector('.actual-input');
+      const rmBtn = row.querySelector('.rm-btn');
+
+      const refreshDiff = () => {
+        const curDiff = num(exp.planned) - num(exp.actual);
+        const diffEl = document.getElementById(`diff-${i}`);
+        if (diffEl) { diffEl.textContent = fmt(curDiff, true); diffEl.className = `diff ${diffClass(curDiff)}`; }
+      };
+
+      const handleInputUpdate = () => {
+        exp.dueDate = dateInput.value;
+        exp.planned = plannedInput.value;
+        exp.actual = actualInput.value;
+        save();
+        refreshDiff();
+        recalc();
+      };
+
+      dateInput.addEventListener('input', handleInputUpdate);
+      plannedInput.addEventListener('input', handleInputUpdate);
+      actualInput.addEventListener('input', handleInputUpdate);
+
+      rmBtn.addEventListener('click', () => {
+        const idx = state.expenses.indexOf(exp);
+        if (idx === -1) return;
+        state.expenses.splice(idx, 1);
+        save(); renderExpenses(); recalc();
+        showUndoToast(`Removed "${exp.name}"`, () => {
+          state.expenses.splice(idx, 0, exp);
+          save(); renderExpenses(); recalc();
+        });
+      });
+
+      expenseRowsEl.appendChild(row);
+    });
+  }
+
+  function renderCreditCards() {
+    ccGridEl.innerHTML = "";
+    const order = dueSortedIndices(state.creditCards, cc => cc.dueDate, cc => cc.crossedOut || isCreditPaid(cc));
+    order.forEach(i => {
+      const cc = state.creditCards[i];
+      const paid = isCreditPaid(cc);
+      const crossed = !!cc.crossedOut;
+
+      const box = document.createElement('div');
+      box.className = `cc-box ${crossed ? 'crossed-out' : ''}`;
+      box.innerHTML = `
+        <button class="cc-crossout-btn ${crossed ? 'active' : ''}" type="button" title="${crossed ? 'Bill applies again — undo cross out' : "Doesn't apply / already settled this month"}">
+          ${crossed ? '↺ Undo' : '✕ N/A'}
+        </button>
+        <span class="cc-name"><span class="cat-icon">💳</span>${cc.name}<span class="severity-icon"></span></span>
+        <span class="cc-due">Due date: ${cc.dueDate || '-'}</span>
+        <div class="input-with-label">
+          <span class="input-sublabel">Amount</span>
+          <input class="amt cc-amt-input" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="${cc.amount}" ${crossed ? 'disabled' : ''}>
+        </div>
+        <button class="action-btn-sm cc-paid-btn ${paid ? 'editing' : ''}" type="button" style="width:100%; height:30px; font-size:11.5px;" ${crossed ? 'disabled' : ''}>
+          ${paid ? 'Paid ✓' : 'Mark Paid'}
+        </button>
+        ${crossed ? `<div class="cc-note">Not applicable this month</div>` : ''}
+      `;
+
+      const amtInput = box.querySelector('.cc-amt-input');
+      const paidBtn = box.querySelector('.cc-paid-btn');
+      const crossoutBtn = box.querySelector('.cc-crossout-btn');
+
+      amtInput.addEventListener('input', () => {
+        cc.amount = amtInput.value;
+        if (paidBtn.classList.contains('editing')) cc.actualAmount = amtInput.value;
+        save(); recalc();
+      });
+
+      paidBtn.addEventListener('click', () => {
+        const currentlyPaid = paidBtn.classList.contains('editing');
+        if (currentlyPaid) {
+          paidBtn.classList.remove('editing'); paidBtn.textContent = "Mark Paid"; cc.actualAmount = "0";
+        } else {
+          paidBtn.classList.add('editing'); paidBtn.textContent = "Paid ✓"; cc.actualAmount = cc.amount || "0";
+        }
+        save(); recalc(); renderCreditCards();
+      });
+
+      crossoutBtn.addEventListener('click', () => {
+        cc.crossedOut = !cc.crossedOut;
+        save(); recalc(); renderCreditCards();
+      });
+
+      ccGridEl.appendChild(box);
+    });
+  }
+
+  function renderOtherExpenses() {
+    const entriesEl = document.getElementById('otherExpenseEntries');
+    entriesEl.innerHTML = "";
+    const planned = num(state.otherExpenses.planned);
+    const total = state.otherExpenses.entries.reduce((s, e) => s + num(e.amount), 0);
+    const diff = planned - total;
+    const diffEl = document.getElementById('otherDiff');
+    diffEl.textContent = fmt(diff, true);
+    diffEl.className = `diff ${diffClass(diff)}`;
+
+    const totalEl = document.getElementById('otherTotalSpent');
+    if (totalEl) totalEl.textContent = fmt(total, false);
+
+    if (state.otherExpenses.entries.length === 0) {
+      entriesEl.innerHTML = `<div style="padding:10px 16px; font-size:12px; color:var(--ink-faint); border-top:1px solid var(--border);">No expenses logged yet this month.</div>`;
+    } else {
+      state.otherExpenses.entries.forEach((entry, i) => {
+        const row = document.createElement('div');
+        row.className = 'oe-entry-row';
+        const safeName = (entry.name || "").replace(/</g, '&lt;');
+        row.innerHTML = `
+          <span>• ${safeName} <span style="color:var(--ink-faint); font-family:var(--mono); font-size:11px;">(${entry.date || ''})</span></span>
+          <span style="display:flex; align-items:center; gap:10px;">
+            <span style="font-family:var(--mono); font-weight:600;">${fmt(num(entry.amount), false)}</span>
+            <button class="rm-btn" style="width:24px;height:24px;font-size:13px;margin-bottom:0;">×</button>
+          </span>
+        `;
+        row.querySelector('.rm-btn').addEventListener('click', () => {
+          state.otherExpenses.entries.splice(i, 1);
+          save(); renderOtherExpenses(); recalc();
+        });
+        entriesEl.appendChild(row);
+      });
+    }
+  }
+
+  function renderLoans() {
+    loanRowsEl.innerHTML = "";
+    loanRowsEl.style.display = "grid";
+    loanRowsEl.style.gridTemplateColumns = "repeat(auto-fit, minmax(280px, 1fr))";
+    loanRowsEl.style.gap = "14px";
+    loanRowsEl.style.padding = "12px 16px";
+
+    const order = dueSortedIndices(state.loans, l => l.dueDate, l => num(l.actualAmount) > 0 && num(l.actualAmount) === num(l.amount));
+    order.forEach(i => {
+      const loan = state.loans[i];
+      const isPaid = num(loan.actualAmount) > 0 && num(loan.actualAmount) === num(loan.amount);
+      const monthlyAmt = num(loan.amount);
+
+      const row = document.createElement('div');
+      row.style.background = "var(--surface-2)";
+      row.style.border = "1px solid var(--border)";
+      row.style.borderRadius = "8px";
+      row.style.padding = "12px";
+      row.style.display = "flex";
+      row.style.flexDirection = "column";
+      row.style.gap = "8px";
+      row.style.position = "relative";
+
+      const safeName = (loan.name || "").replace(/"/g, '&quot;');
+      const safeDate = (loan.dueDate || "").replace(/"/g, '&quot;');
+      const safeProgress = (loan.progress || "").replace(/"/g, '&quot;');
+
+      row.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-right:24px;">
+          <div style="font-weight:600; font-size:14px; color:var(--ink);">
+            ${state.isEditingFixed ? `
+              <input class="loan-txt loan-name" type="text" placeholder="Loan Description" value="${safeName}" style="font-weight:600; padding:4px 6px;">
+            ` : (safeName || '<span style="color:var(--ink-faint); font-style:italic;">Unnamed Loan</span>')}<span class="severity-icon"></span>
+          </div>
+          <button class="rm-btn" title="Remove account" type="button" style="position:absolute; top:8px; right:8px; width:22px; height:22px; font-size:12px;" ${state.isEditingFixed ? '' : 'hidden'}>×</button>
+        </div>
+
+        <div style="font-family:var(--mono); font-size:15px; font-weight:700; color:var(--ink);">
+          ${state.isEditingFixed ? `
+            <span style="font-size:10px; color:var(--ink-soft); font-family:var(--sans); display:block; margin-bottom:2px; font-weight:normal; text-transform:uppercase;">Monthly Amount</span>
+            <input class="amt loan-amt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="${loan.amount}">
+          ` : fmt(monthlyAmt, false)}
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; font-size:12px; border-top:1px dashed var(--border); padding-top:8px;">
+          <div>
+            <span style="font-size:10px; color:var(--ink-faint); display:block; text-transform:uppercase;">Due Date</span>
+            ${state.isEditingFixed ? `
+              <input class="loan-txt loan-date" type="text" placeholder="e.g. 15th" value="${safeDate}">
+            ` : (safeDate || '-')}
+          </div>
+          <div>
+            <span style="font-size:10px; color:var(--ink-faint); display:block; text-transform:uppercase;">Progress (e.g. 8/12)</span>
+            ${state.isEditingFixed ? `
+              <input class="loan-txt loan-progress" type="text" placeholder="e.g. 8/12" value="${safeProgress}">
+            ` : (safeProgress || '-')}
+          </div>
+        </div>
+
+        <div style="margin-top:4px; border-top:1px solid var(--border); padding-top:8px;">
+          <button class="action-btn-sm loan-paid-btn ${isPaid ? 'editing' : ''}" type="button" style="width:100%; height:32px; font-size:12px;">
+            ${isPaid ? 'Paid ✓' : 'Mark Paid'}
+          </button>
+        </div>
+      `;
+
+      const nameInput = row.querySelector('.loan-name');
+      const amtInput = row.querySelector('.loan-amt');
+      const dateInput = row.querySelector('.loan-date');
+      const progressInput = row.querySelector('.loan-progress');
+      const rmBtn = row.querySelector('.rm-btn');
+      const loanPaidBtn = row.querySelector('.loan-paid-btn');
+
+      if (nameInput) nameInput.addEventListener('input', () => { loan.name = nameInput.value; save(); });
+      if (dateInput) dateInput.addEventListener('input', () => { loan.dueDate = dateInput.value; save(); });
+      if (progressInput) progressInput.addEventListener('input', () => { loan.progress = progressInput.value; save(); });
+
+      if (amtInput) {
+        amtInput.addEventListener('input', () => {
+          loan.amount = amtInput.value;
+          if (loanPaidBtn.classList.contains('editing')) loan.actualAmount = amtInput.value;
+          save(); recalc();
+        });
+      }
+
+      loanPaidBtn.addEventListener('click', () => {
+        const currentlyPaid = loanPaidBtn.classList.contains('editing');
+        if (currentlyPaid) {
+          loanPaidBtn.classList.remove('editing'); loanPaidBtn.textContent = "Mark Paid"; loan.actualAmount = "0";
+        } else {
+          loanPaidBtn.classList.add('editing'); loanPaidBtn.textContent = "Paid ✓"; loan.actualAmount = loan.amount || "0";
+        }
+        save(); recalc();
+      });
+
+      if (rmBtn) {
+        rmBtn.addEventListener('click', () => {
+          const idx = state.loans.indexOf(loan);
+          if (idx === -1) return;
+          state.loans.splice(idx, 1);
+          let addedPlaceholder = false;
+          if (state.loans.length === 0) {
+            state.loans.push({ name: "", amount: "", dueDate: "", progress: "", actualAmount: "" });
+            addedPlaceholder = true;
+          }
+          save(); renderLoans(); recalc();
+          const loanLabel = (loan.name || "").trim() ? `"${loan.name.trim()}"` : "loan";
+          showUndoToast(`Removed ${loanLabel}`, () => {
+            if (addedPlaceholder) state.loans.length = 0;
+            state.loans.splice(idx, 0, loan);
+            save(); renderLoans(); recalc();
+          });
+        });
+      }
+
+      loanRowsEl.appendChild(row);
+    });
+  }
+
+  function renderDashboard() {
+    // Bills coverage: fixed + variable + loans (Other Expenses is flexible, not counted as a "bill")
+    let totalBills = 0, paidBills = 0;
+    state.fixedAmounts.forEach(f => { totalBills++; if (isPaidPair(f.planned, f.actual)) paidBills++; });
+    state.expenses.forEach(e => { totalBills++; if (isVarLogged(e)) paidBills++; });
+    state.loans.forEach(l => { totalBills++; if (num(l.actualAmount) > 0) paidBills++; });
+    state.creditCards.forEach(cc => {
+      if (cc.crossedOut) return; // doesn't apply this month — excluded from coverage
+      totalBills++; if (isCreditPaid(cc)) paidBills++;
+    });
+
+    const pct = totalBills ? Math.round((paidBills / totalBills) * 100) : 0;
+    document.getElementById('dashBillsPct').textContent = pct + "%";
+    document.getElementById('dashBillsBar').style.width = pct + "%";
+    document.getElementById('dashBillsSub').textContent = totalBills
+      ? `${paidBills} of ${totalBills} items paid · ${totalBills - paidBills} pending`
+      : "Add fixed, variable, or loan items to track coverage";
+
+    // Fund allocation
+    const fixedTotal = state.fixedAmounts.reduce((s, f) => s + num(f.planned), 0);
+    const variableTotal = state.expenses.reduce((s, e) => s + num(e.planned), 0);
+    const otherTotal = num(state.otherExpenses.planned);
+    const loansTotal = state.loans.reduce((s, l) => s + num(l.amount), 0);
+    const savingsTotal = num(state.savingsPlanned);
+    const grand = fixedTotal + variableTotal + otherTotal + loansTotal + savingsTotal;
+
+    const cats = [
+      { label: "Fixed Bills", val: fixedTotal, color: "var(--cat-fixed)" },
+      { label: "Variable", val: variableTotal, color: "var(--cat-variable)" },
+      { label: "Other", val: otherTotal, color: "var(--cat-other)" },
+      { label: "Loans", val: loansTotal, color: "var(--cat-loans)" },
+      { label: "Savings", val: savingsTotal, color: "var(--cat-savings)" }
+    ];
+
+    const barsEl = document.getElementById('allocBars');
+    barsEl.innerHTML = "";
+
+    if (grand <= 0) {
+      barsEl.innerHTML = `<div class="dash-subtext" style="margin-top:0;">Add planned amounts across categories to see your allocation</div>`;
+    } else {
+      const maxVal = Math.max(...cats.map(c => c.val), 1);
+      cats.forEach(c => {
+        const pctOfTotal = (c.val / grand) * 100;
+        const barWidth = (c.val / maxVal) * 100;
+        const row = document.createElement('div');
+        row.className = 'alloc-bar-row';
+        row.innerHTML = `
+          <div class="alloc-bar-head">
+            <span class="alloc-bar-name"><span class="alloc-swatch" style="background:${c.color};"></span>${c.label}</span>
+            <span class="alloc-bar-val">${fmt(c.val, false)} · ${Math.round(pctOfTotal)}%</span>
+          </div>
+          <div class="alloc-bar-track"><div class="alloc-bar-fill" style="width:${barWidth}%; background:${c.color};"></div></div>
+        `;
+        barsEl.appendChild(row);
+      });
+    }
+  }
+
+  function updateSalarySection(expensesPaidTotal) {
+    const salary = num(state.salary);
+    document.getElementById('dashExpensesPaid').textContent = fmt(expensesPaidTotal, false);
+
+    const limitEl = document.getElementById('dashSpendingLimit');
+    const remainEl = document.getElementById('dashRemaining');
+    if (salary <= 0) {
+      limitEl.textContent = "₱0";
+      limitEl.style.color = "var(--ink)";
+      remainEl.textContent = "Enter your salary to estimate remaining spending limit";
+      remainEl.style.color = "var(--ink-faint)";
+    } else {
+      const remaining = salary - expensesPaidTotal;
+      limitEl.textContent = fmt(remaining, false);
+      limitEl.style.color = remaining < 0 ? 'var(--negative)' : 'var(--positive)';
+      remainEl.textContent = remaining < 0 ? "You've gone over what's left of your salary" : "This is what you have left to spend this month";
+      remainEl.style.color = remaining < 0 ? 'var(--negative)' : 'var(--ink-faint)';
+    }
+  }
+
+  function recalc() {
+    const varPlanned = state.expenses.reduce((s, e) => s + num(e.planned), 0) + num(state.otherExpenses.planned);
+    const varActual = state.expenses.reduce((s, e) => s + num(e.actual), 0) + state.otherExpenses.entries.reduce((s, en) => s + num(en.amount), 0);
+
+    const fixPlanned = state.fixedAmounts.reduce((s, f) => s + num(f.planned), 0);
+    const fixActual = state.fixedAmounts.reduce((s, f) => s + num(f.actual), 0);
+
+    const totalLoansActual = state.loans.reduce((s, l) => s + num(l.actualAmount), 0);
+    const totalCreditActual = state.creditCards.reduce((s, cc) => s + (cc.crossedOut ? 0 : num(cc.actualAmount)), 0);
+
+    // Full totals across everything (Fixed + Variable + Other + Loans + Credit Cards) — used
+    // for the Net Saved stamp and the dashboard's "Expenses Paid" readout.
+    const fullTotalPlanned = varPlanned + fixPlanned;
+    const fullTotalActual = varActual + fixActual + totalLoansActual + totalCreditActual;
+    const fullVariance = fullTotalPlanned - fullTotalActual;
+
+    // "Total Planned" / "Total Actual" / "Budget Variance" cards reflect Variable + Other
+    // Expenses ONLY — this is what actually measures discretionary savings performance,
+    // since Fixed bills, Loan payments, and Credit Card/Online Shopping bills are committed
+    // spending regardless.
+    const displayPlanned = varPlanned;
+    const displayActual = varActual;
+    const displayVariance = displayPlanned - displayActual;
+
+    const savingsActual = num(state.savingsActual);
+    const netSaved = fullVariance + savingsActual - totalLoansActual - totalCreditActual;
+
+    document.getElementById('statPlanned').textContent = fmt(displayPlanned, false);
+    document.getElementById('statActual').textContent = fmt(displayActual, false);
+
+    const varEl = document.getElementById('statVariance');
+    varEl.textContent = fmt(displayVariance, true);
+    varEl.style.color = displayVariance < 0 ? 'var(--negative)' : (displayVariance > 0 ? 'var(--positive)' : 'var(--ink)');
+
+    document.getElementById('statLoans').textContent = fmt(totalLoansActual, false);
+    document.getElementById('loanTotalVal').textContent = fmt(totalLoansActual, false);
+
+    const netEl = document.getElementById('netSaved');
+    netEl.textContent = fmt(netSaved, false);
+    netEl.style.color = netSaved < 0 ? 'var(--negative)' : 'var(--positive)';
+
+    updateSalarySection(fullTotalActual);
+    renderDashboard();
+    updateOverdueVisualAlerts();
+  }
+
+  editFixedBtn.addEventListener('click', () => {
+    state.isEditingFixed = !state.isEditingFixed;
+    if (state.isEditingFixed) {
+      editFixedBtn.textContent = "Save & Lock Changes";
+      editFixedBtn.classList.add('editing');
+      addLoanBtn.removeAttribute('disabled');
+    } else {
+      editFixedBtn.textContent = "Edit Locked Fields";
+      editFixedBtn.classList.remove('editing');
+      addLoanBtn.setAttribute('disabled', 'true');
+    }
+    renderFixedSection();
+    renderLoans();
+  });
+
+  addExpenseBtn.addEventListener('click', () => {
+    const name = prompt("Name of new variable expense category:");
+    if (!name || !name.trim()) return;
+    state.expenses.push({ name: name.trim(), planned: "", actual: "", dueDate: "" });
+    save(); renderExpenses(); recalc();
+  });
+
+  const savingsPlannedEl = document.getElementById('savingsPlanned');
+  const savingsActualEl = document.getElementById('savingsActual');
+  const savingsDueDateEl = document.getElementById('savingsDueDate');
+
+  savingsPlannedEl.value = state.savingsPlanned;
+  savingsActualEl.value = state.savingsActual;
+  savingsDueDateEl.value = state.savingsDueDate || "";
+
+  savingsPlannedEl.addEventListener('input', () => { state.savingsPlanned = savingsPlannedEl.value; save(); recalc(); });
+  savingsActualEl.addEventListener('input', () => { state.savingsActual = savingsActualEl.value; save(); recalc(); });
+  savingsDueDateEl.addEventListener('input', () => { state.savingsDueDate = savingsDueDateEl.value; save(); });
+
+  const salaryInputEl = document.getElementById('salaryInput');
+  salaryInputEl.value = state.salary || "";
+  salaryInputEl.addEventListener('input', () => { state.salary = salaryInputEl.value; save(); recalc(); });
+
+  const otherPlannedEl = document.getElementById('otherPlanned');
+  otherPlannedEl.value = state.otherExpenses.planned || "";
+  otherPlannedEl.addEventListener('input', () => {
+    state.otherExpenses.planned = otherPlannedEl.value;
+    save(); renderOtherExpenses(); recalc();
+  });
+
+  document.getElementById('addOtherExpenseBtn').addEventListener('click', () => {
+    const nameEl = document.getElementById('otherExpenseName');
+    const amtEl = document.getElementById('otherExpenseAmt');
+    const name = nameEl.value.trim();
+    const amt = amtEl.value;
+    if (!name || !amt || num(amt) <= 0) { alert("Enter both an expense type and a valid cost."); return; }
+    const dateStr = new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+    state.otherExpenses.entries.push({ name, amount: amt, date: dateStr });
+    nameEl.value = ""; amtEl.value = "";
+    save(); renderOtherExpenses(); recalc();
+    nameEl.focus();
+  });
+
+  addLoanBtn.addEventListener('click', () => {
+    state.loans.push({ name: "", amount: "", dueDate: "", progress: "", actualAmount: "" });
+    save(); renderLoans(); recalc();
+  });
+
+  const modeToggle = document.getElementById('modeToggle');
+  function applyMode() {
+    document.documentElement.classList.toggle('dark', !!state.dark);
+    modeToggle.setAttribute('aria-pressed', state.dark ? 'true' : 'false');
+  }
+  modeToggle.addEventListener('click', () => { state.dark = !state.dark; save(); applyMode(); });
+
+  if (localStorage.getItem(STORE_KEY) === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    state.dark = true;
+  }
+  applyMode();
+
+  document.getElementById('stampDate').textContent = "as of " + new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Show Full Breakdown / Show Summary Only toggle
+  const toggleDetailBtn = document.getElementById('toggleDetailBtn');
+  const detailWrap = document.getElementById('detailWrap');
+  function applyDetailView() {
+    detailWrap.style.display = state.showDetails ? '' : 'none';
+    toggleDetailBtn.textContent = state.showDetails ? 'Show Summary Only ▴' : 'Show Full Breakdown ▾';
+  }
+  toggleDetailBtn.addEventListener('click', () => {
+    state.showDetails = !state.showDetails;
+    save();
+    applyDetailView();
+  });
+
+  // Severity icon for a due date, so status doesn't rely on color/glow alone:
+  // 🟢 paid · 🔴 overdue & unpaid · 🟡 due within 3 days & unpaid · '' otherwise
+  function getSeverityIcon(targetDay, isPaidFlag, isCurrentWorkingMonth, currentDay) {
+    if (isPaidFlag) return { icon: '🟢', label: 'Paid' };
+    if (!isCurrentWorkingMonth || targetDay == null) return { icon: '', label: '' };
+    const daysUntil = targetDay - currentDay;
+    if (daysUntil < 0) return { icon: '🔴', label: 'Overdue' };
+    if (daysUntil <= 3) return { icon: '🟡', label: 'Due soon' };
+    return { icon: '', label: '' };
+  }
+  function applySeverityIcon(containerEl, targetDay, isPaidFlag, isCurrentWorkingMonth, currentDay) {
+    const sevEl = containerEl.querySelector('.severity-icon');
+    if (!sevEl) return;
+    const { icon, label } = getSeverityIcon(targetDay, isPaidFlag, isCurrentWorkingMonth, currentDay);
+    sevEl.textContent = icon;
+    sevEl.title = label;
+  }
+
+  /* --- PAST-DUE DYNAMIC HIGHLIGHT ENGINE --- */
+  function updateOverdueVisualAlerts() {
+    const currentDay = new Date().getDate();
+
+    const historyPicker = document.getElementById('monthSelector');
+    let isCurrentWorkingMonth = true;
+    if (historyPicker && historyPicker.value !== "current") isCurrentWorkingMonth = false;
+
+    // extractDayNum is shared (defined earlier) and reused here
+
+    if (!document.getElementById('glowStyles')) {
+      const style = document.createElement('style');
+      style.id = 'glowStyles';
+      style.innerHTML = `
+        .overdue-glow {
+          border-left: 5px solid var(--negative) !important;
+          background-color: var(--negative-soft) !important;
+          box-shadow: 0 0 8px rgba(184, 64, 46, 0.12) !important;
+        }
+        .past-due-badge {
+          color: var(--negative);
+          font-size: 11px;
+          font-weight: 700;
+          margin-left: 6px;
+          text-transform: uppercase;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Rows are rendered in due-date-sorted order, so walk state items in that same
+    // order to line each one up with the correct DOM row.
+    const fixedRows = fixedRowsEl.querySelectorAll('.expense-row');
+    const fixedOrder = dueSortedIndices(state.fixedAmounts, f => f.dueDate, f => isPaidPair(f.planned, f.actual));
+    fixedOrder.forEach((stateIdx, rowIdx) => {
+      const fix = state.fixedAmounts[stateIdx];
+      const rowEl = fixedRows[rowIdx];
+      if (!rowEl) return;
+      rowEl.classList.remove('overdue-glow');
+      const badge = rowEl.querySelector('.past-due-badge');
+      if (badge) badge.remove();
+      const targetDay = extractDayNum(fix.dueDate);
+      const isUnpaid = !fix.actual || num(fix.actual) === 0;
+      if (isCurrentWorkingMonth && targetDay && currentDay > targetDay && isUnpaid) {
+        rowEl.classList.add('overdue-glow');
+        const catNameSpan = rowEl.querySelector('.cat-name');
+        if (catNameSpan) catNameSpan.insertAdjacentHTML('beforeend', '<span class="past-due-badge">⚠️ Past Due</span>');
+      }
+      applySeverityIcon(rowEl, targetDay, isPaidPair(fix.planned, fix.actual), isCurrentWorkingMonth, currentDay);
+    });
+
+    const varRows = expenseRowsEl.querySelectorAll('.expense-row');
+    const varOrder = dueSortedIndices(state.expenses, e => e.dueDate, e => isVarLogged(e));
+    varOrder.forEach((stateIdx, rowIdx) => {
+      const exp = state.expenses[stateIdx];
+      const rowEl = varRows[rowIdx];
+      if (!rowEl) return;
+      rowEl.classList.remove('overdue-glow');
+      const badge = rowEl.querySelector('.past-due-badge');
+      if (badge) badge.remove();
+      const targetDay = extractDayNum(exp.dueDate);
+      const isUnpaid = !exp.actual || num(exp.actual) === 0;
+      if (isCurrentWorkingMonth && targetDay && currentDay > targetDay && isUnpaid) {
+        rowEl.classList.add('overdue-glow');
+        const catNameSpan = rowEl.querySelector('.cat-name');
+        if (catNameSpan) catNameSpan.insertAdjacentHTML('beforeend', '<span class="past-due-badge">⚠️ Past Due</span>');
+      }
+      applySeverityIcon(rowEl, targetDay, isVarLogged(exp), isCurrentWorkingMonth, currentDay);
+    });
+
+    const ccBoxes = ccGridEl.querySelectorAll('.cc-box');
+    const ccOrder = dueSortedIndices(state.creditCards, cc => cc.dueDate, cc => cc.crossedOut || isCreditPaid(cc));
+    ccOrder.forEach((stateIdx, rowIdx) => {
+      const cc = state.creditCards[stateIdx];
+      const boxEl = ccBoxes[rowIdx];
+      if (!boxEl) return;
+      boxEl.classList.remove('overdue-glow');
+      const badge = boxEl.querySelector('.past-due-badge');
+      if (badge) badge.remove();
+      if (cc.crossedOut) return; // no overdue styling for items marked N/A
+      const targetDay = extractDayNum(cc.dueDate);
+      const isUnpaid = !cc.actualAmount || num(cc.actualAmount) === 0;
+      if (isCurrentWorkingMonth && targetDay && currentDay > targetDay && isUnpaid) {
+        boxEl.classList.add('overdue-glow');
+        const nameSpan = boxEl.querySelector('.cc-name');
+        if (nameSpan) nameSpan.insertAdjacentHTML('afterend', '<span class="past-due-badge">⚠️ Past Due</span>');
+      }
+      applySeverityIcon(boxEl, targetDay, isCreditPaid(cc), isCurrentWorkingMonth, currentDay);
+    });
+
+    const loanCards = loanRowsEl.children;
+    const loanOrder = dueSortedIndices(state.loans, l => l.dueDate, l => num(l.actualAmount) > 0 && num(l.actualAmount) === num(l.amount));
+    loanOrder.forEach((stateIdx, rowIdx) => {
+      const loan = state.loans[stateIdx];
+      const cardEl = loanCards[rowIdx];
+      if (!cardEl) return;
+      cardEl.classList.remove('overdue-glow');
+      const badge = cardEl.querySelector('.past-due-badge');
+      if (badge) badge.remove();
+      const targetDay = extractDayNum(loan.dueDate);
+      const isUnpaid = !loan.actualAmount || num(loan.actualAmount) === 0;
+      if (isCurrentWorkingMonth && targetDay && currentDay > targetDay && isUnpaid) {
+        cardEl.classList.add('overdue-glow');
+        const headerDiv = cardEl.querySelector('div');
+        if (headerDiv) headerDiv.insertAdjacentHTML('beforeend', '<span class="past-due-badge">⚠️ Past Due</span>');
+      }
+      const loanIsPaid = num(loan.actualAmount) > 0 && num(loan.actualAmount) === num(loan.amount);
+      applySeverityIcon(cardEl, targetDay, loanIsPaid, isCurrentWorkingMonth, currentDay);
+    });
+  }
+
+  /* --- SYSTEM REMINDER NOTIFICATIONS --- */
+  const notifyBtn = document.getElementById('allowNotificationsBtn');
+  if (notifyBtn) {
+    if (Notification.permission === "granted") { notifyBtn.textContent = "✓ Alarms Set"; notifyBtn.style.opacity = "0.7"; }
+    notifyBtn.addEventListener('click', () => {
+      if (!("Notification" in window)) { alert("Desktop notifications are not supported in this browser environment."); return; }
+      Notification.requestPermission().then(perm => {
+        if (perm === "granted") {
+          notifyBtn.textContent = "✓ Alarms Set"; notifyBtn.style.opacity = "0.7";
+          checkDailyAlarms(true);
+        } else {
+          alert("Permissions blocked. Re-enable site layout notice settings manually to activate.");
+        }
+      });
+    });
+  }
+
+  function checkDailyAlarms(forceAlert = false) {
+    if (Notification.permission !== "granted") return;
+    const currentDay = new Date().getDate();
+    let dueList = [];
+    const parseDay = (s) => { const m = (s || "").match(/\d+/); return m ? parseInt(m[0], 10) : null; };
+
+    state.fixedAmounts.forEach(f => { if (parseDay(f.dueDate) === currentDay && (!f.actual || num(f.actual) === 0)) dueList.push(f.name); });
+    state.expenses.forEach(e => { if (parseDay(e.dueDate) === currentDay && (!e.actual || num(e.actual) === 0)) dueList.push(e.name); });
+    state.loans.forEach(l => { if (parseDay(l.dueDate) === currentDay && (!l.actualAmount || num(l.actualAmount) === 0)) dueList.push(l.name || "Loan"); });
+    state.creditCards.forEach(cc => { if (!cc.crossedOut && parseDay(cc.dueDate) === currentDay && (!cc.actualAmount || num(cc.actualAmount) === 0)) dueList.push(cc.name); });
+    if (parseDay(state.savingsDueDate) === currentDay && !(num(state.savingsActual) > 0)) dueList.push("Savings");
+
+    if (dueList.length > 0) {
+      new Notification("⏰ Budget Deadlines Today", { body: `You have ${dueList.length} unpaid items due today: ${dueList.join(", ")}` });
+    } else if (forceAlert) {
+      new Notification("Budget Ledger", { body: "Excellent! You have no unpaid budget deadlines due today." });
+    }
+  }
+
+  /* --- HISTORICAL LEDGER ARCHIVE REGISTRY --- */
+  const ARCHIVE_KEY = "budgetLedgerHistory_v2";
+
+  function getHistoryIndex() {
+    try { return JSON.parse(localStorage.getItem(ARCHIVE_KEY)) || {}; } catch (e) { return {}; }
+  }
+
+  function ensureShape(s) {
+    // Defensive fallback so older archived snapshots (pre-dashboard) still render fine
+    s.otherExpenses = (s.otherExpenses && Array.isArray(s.otherExpenses.entries)) ? s.otherExpenses : { planned: "", entries: [] };
+    s.savingsDueDate = s.savingsDueDate || "";
+    s.salary = s.salary || "";
+    if (typeof s.showDetails !== "boolean") s.showDetails = state.showDetails;
+    if (!Array.isArray(s.expenses) || !s.expenses.length) s.expenses = defaultState().expenses;
+    if (!Array.isArray(s.fixedAmounts) || !s.fixedAmounts.length) s.fixedAmounts = defaultState().fixedAmounts;
+    if (!Array.isArray(s.creditCards) || !s.creditCards.length) s.creditCards = defaultState().creditCards;
+    if (!Array.isArray(s.loans) || !s.loans.length) s.loans = defaultState().loans;
+    return s;
+  }
+
+  function syncMonthSelector() {
+    const picker = document.getElementById('monthSelector');
+    if (!picker) return;
+    picker.innerHTML = `<option value="current">Current Working Month</option>`;
+    const database = getHistoryIndex();
+    Object.keys(database).sort().reverse().forEach(key => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      const parts = key.split("-");
+      const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
+      opt.textContent = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+      picker.appendChild(opt);
+    });
+  }
+
+  document.getElementById('monthSelector').addEventListener('change', (e) => {
+    const target = e.target.value;
+    const deleteBtn = document.getElementById('deleteHistoryBtn');
+    if (target === "current") {
+      state = loadState();
+      document.getElementById('newMonthBtn').style.display = "inline-block";
+      editFixedBtn.style.display = "inline-block";
+      addLoanBtn.disabled = !state.isEditingFixed;
+      addExpenseBtn.style.display = "inline-block";
+      document.getElementById('addOtherExpenseBtn').disabled = false;
+      if (deleteBtn) deleteBtn.style.display = "none";
+    } else {
+      const db = getHistoryIndex();
+      if (db[target]) {
+        state = ensureShape(db[target]);
+        state.isEditingFixed = false;
+        document.getElementById('newMonthBtn').style.display = "none";
+        editFixedBtn.style.display = "none";
+        addLoanBtn.disabled = true;
+        addExpenseBtn.style.display = "none";
+        document.getElementById('addOtherExpenseBtn').disabled = true;
+      }
+      if (deleteBtn) deleteBtn.style.display = "inline-flex";
+    }
+    savingsPlannedEl.value = state.savingsPlanned || "";
+    savingsActualEl.value = state.savingsActual || "";
+    savingsDueDateEl.value = state.savingsDueDate || "";
+    otherPlannedEl.value = state.otherExpenses.planned || "";
+    salaryInputEl.value = state.salary || "";
+    renderFixedSection();
+    renderExpenses();
+    renderCreditCards();
+    renderOtherExpenses();
+    renderLoans();
+    applyDetailView();
+    recalc();
+  });
+
+  document.getElementById('deleteHistoryBtn').addEventListener('click', () => {
+    const picker = document.getElementById('monthSelector');
+    const target = picker.value;
+    if (target === "current") return;
+    const db = getHistoryIndex();
+    const label = picker.options[picker.selectedIndex] ? picker.options[picker.selectedIndex].textContent : target;
+    if (!confirm(`Delete the archived ledger for ${label}?\n\nThis can't be undone.`)) return;
+    delete db[target];
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(db));
+    syncMonthSelector();
+    picker.value = "current";
+    picker.dispatchEvent(new Event('change'));
+  });
+
+  // Manual archive trigger shortcut in the actions row
+  const controlsRow = document.querySelector('.actions');
+  const saveSnapshotBtn = document.createElement('button');
+  saveSnapshotBtn.className = "btn btn-primary";
+  saveSnapshotBtn.style.background = "var(--accent)";
+  saveSnapshotBtn.style.borderColor = "var(--accent)";
+  saveSnapshotBtn.style.color = "white";
+  saveSnapshotBtn.textContent = "💾 Save Monthly Record Snapshot";
+  if (controlsRow) controlsRow.appendChild(saveSnapshotBtn);
+
+  saveSnapshotBtn.addEventListener('click', () => {
+    const rawY = prompt("Enter Ledger Closing Year (YYYY):", new Date().getFullYear());
+    if (!rawY) return;
+    const rawM = prompt("Enter Ledger Closing Month Number (1-12):", new Date().getMonth() + 1);
+    if (!rawM) return;
+
+    const y = parseInt(rawY, 10);
+    const m = parseInt(rawM, 10);
+
+    if (isNaN(y) || isNaN(m) || m < 1 || m > 12) { alert("Invalid date parameters supplied. Action aborted."); return; }
+
+    const stampKey = `${y}-${m.toString().padStart(2, '0')}`;
+    const db = getHistoryIndex();
+    db[stampKey] = JSON.parse(JSON.stringify(state));
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(db));
+
+    syncMonthSelector();
+    document.getElementById('monthSelector').value = stampKey;
+    document.getElementById('monthSelector').dispatchEvent(new Event('change'));
+
+    alert(`Snapshot archived successfully under ledger key reference: ${stampKey}!`);
+  });
+
+  /* --- EXCEL DATA TABLE EXPORT --- */
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const lines = [];
+    lines.push(["Category Profile", "Due Date", "Amount to Pay", "Actual Spend", "Variance Status"].join("\t"));
+
+    state.fixedAmounts.forEach(f => {
+      const d = num(f.planned) - num(f.actual);
+      lines.push([f.name + " (Fixed)", f.dueDate || "-", num(f.planned), num(f.actual), d].join("\t"));
+    });
+
+    state.expenses.forEach(e => {
+      const diff = num(e.planned) - num(e.actual);
+      lines.push([e.name, e.dueDate || "-", num(e.planned), num(e.actual), diff].join("\t"));
+    });
+
+    lines.push("");
+    lines.push(["Credit Card & Online Shopping", "Due Date", "Amount to Pay", "Paid Amount", "Status"].join("\t"));
+    state.creditCards.forEach(cc => {
+      const status = cc.crossedOut ? "N/A this month" : (isCreditPaid(cc) ? "Paid" : "Unpaid");
+      lines.push([cc.name, cc.dueDate || "-", num(cc.amount), num(cc.actualAmount), status].join("\t"));
+    });
+    const totalCreditActualForExport = state.creditCards.reduce((s, cc) => s + (cc.crossedOut ? 0 : num(cc.actualAmount)), 0);
+    lines.push(["Total Credit Card & Online Shopping Paid", totalCreditActualForExport, "", "", ""].join("\t"));
+
+    lines.push("");
+    lines.push(["Other Expenses (Log)", "Date Logged", "Cost", "", ""].join("\t"));
+    state.otherExpenses.entries.forEach(entry => {
+      lines.push([entry.name, entry.date || "-", num(entry.amount), "", ""].join("\t"));
+    });
+    const otherActualTotal = state.otherExpenses.entries.reduce((s, e) => s + num(e.amount), 0);
+    lines.push(["Other Expenses Planned vs Actual", "-", num(state.otherExpenses.planned), otherActualTotal, num(state.otherExpenses.planned) - otherActualTotal].join("\t"));
+
+    lines.push("");
+    lines.push(["Savings Allocation", "Due Date", "Planned", "Actual", ""].join("\t"));
+    lines.push(["Savings Milestone", state.savingsDueDate || "-", num(state.savingsPlanned), num(state.savingsActual), ""].join("\t"));
+    lines.push("");
+    lines.push(["Loans Profile Ledger", "Monthly Installment Amount", "Due Date Schedule", "Repayment Progress Counter", "Actual Paid"].join("\t"));
+    state.loans.forEach(l => {
+      lines.push([l.name || "(unnamed loan)", num(l.amount), l.dueDate || "-", l.progress || "-", num(l.actualAmount)].join("\t"));
+    });
+
+    const totalLoansActual = state.loans.reduce((s, l) => s + num(l.actualAmount), 0);
+    lines.push(["Total Consolidated Loan Profile Payments", totalLoansActual, "", "", ""].join("\t"));
+    lines.push("");
+
+    const varPlanned = state.expenses.reduce((s, e) => s + num(e.planned), 0) + num(state.otherExpenses.planned);
+    const varActual = state.expenses.reduce((s, e) => s + num(e.actual), 0) + otherActualTotal;
+    const fixPlanned = state.fixedAmounts.reduce((s, f) => s + num(f.planned), 0);
+    const fixActual = state.fixedAmounts.reduce((s, f) => s + num(f.actual), 0);
+    const totalPlanned = varPlanned + fixPlanned;
+    const totalActual = varActual + fixActual + totalLoansActual + totalCreditActualForExport;
+    const variance = totalPlanned - totalActual;
+    const netSaved = variance + num(state.savingsActual) - totalLoansActual - totalCreditActualForExport;
+
+    lines.push(["Total Planned Matrix Balance", totalPlanned].join("\t"));
+    lines.push(["Total Actual Tracked Cost Balance", totalActual].join("\t"));
+    lines.push(["Net Aggregated Budget Variance", variance].join("\t"));
+    lines.push(["Net Clean Amount Stashed Saved", netSaved].join("\t"));
+
+    const text = lines.join("\n");
+    const btn = document.getElementById('exportBtn');
+
+    function markCopied() {
+      const original = btn.textContent;
+      btn.textContent = "Copied ✓";
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1600);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(markCopied).catch(() => fallbackCopy(text, markCopied));
+    } else {
+      fallbackCopy(text, markCopied);
+    }
+  });
+
+  function fallbackCopy(text, onDone) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { document.execCommand('copy'); onDone(); } catch (e) { alert('Could not copy automatically — copy via manual text highlighting.'); }
+    document.body.removeChild(ta);
+  }
+
+  /* --- NEW MONTH: clears variable + other-expense actuals, advances paid loan progress, keeps Fixed Amounts intact --- */
+  document.getElementById('newMonthBtn').addEventListener('click', () => {
+    if (!confirm("Start a New Month?\n\n• Variable Expenses actual amounts will be cleared\n• Other Expenses log will be cleared (planned target stays)\n• Credit Card & Online Shopping amounts, paid status, and cross-outs will be cleared\n• Loans marked Paid will advance their progress counter, then reset to unpaid\n• Fixed Amounts stay exactly as they are\n\nThis can't be undone.")) return;
+
+    state.expenses.forEach(e => { e.actual = ""; });
+
+    state.creditCards.forEach(cc => { cc.amount = ""; cc.actualAmount = ""; cc.crossedOut = false; });
+
+    state.otherExpenses.entries = [];
+
+    state.loans.forEach(l => {
+      if (num(l.actualAmount) > 0) {
+        const m = (l.progress || "").match(/^\s*(\d+)\s*\/\s*(\d+)\s*$/);
+        if (m) {
+          let cur = parseInt(m[1], 10);
+          const total = parseInt(m[2], 10);
+          if (cur < total) cur += 1;
+          l.progress = `${cur}/${total}`;
+        }
+      }
+      l.actualAmount = "";
+    });
+
+    save();
+    renderFixedSection();
+    renderExpenses();
+    renderCreditCards();
+    renderOtherExpenses();
+    renderLoans();
+    recalc();
+  });
+
+  // Initial Boot Sequence
+  syncMonthSelector();
+  renderFixedSection();
+  renderExpenses();
+  renderCreditCards();
+  renderOtherExpenses();
+  renderLoans();
+  applyDetailView();
+  recalc();
+
+  if (Notification.permission === "granted") {
+    setTimeout(() => { checkDailyAlarms(false); }, 1000);
+  }
+</script>
+
+  <nav class="mobile-nav" aria-label="App navigation">
+    <button class="active" data-target="dashboardCard"><span class="nav-icon">⌂</span>Home</button>
+    <button data-target="expenseRows"><span class="nav-icon">₱</span>Budget</button>
+    <button data-target="fixedLoanContainer"><span class="nav-icon">▣</span>Loans</button>
+    <button data-target="savingsPlanned"><span class="nav-icon">◈</span>Savings</button>
+  </nav>
+  <button class="mobile-action-fab" id="mobileTopBtn" aria-label="Back to dashboard">↑</button>
+
+<script>
+  // Mobile app navigation
+  document.querySelectorAll(".mobile-nav button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = document.getElementById(btn.dataset.target);
+      if (target) target.scrollIntoView({behavior:"smooth", block:"start"});
+      document.querySelectorAll(".mobile-nav button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+  document.getElementById("mobileTopBtn")?.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
+  if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body>
+</html>
