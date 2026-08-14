@@ -2,15 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#2F6F5E">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Budget Ledger">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Budget Ledger</title>
 <style>
   :root {
@@ -264,64 +256,20 @@
     .oe-log-form input.amt, .oe-log-form .add-btn { flex: 1; width: 100%; }
     .cc-grid { grid-template-columns: 1fr; }
   }
-
-
-  /* ===== PHONE APP / PWA LAYOUT ===== */
-  body { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
-  .wrap { max-width: 760px; padding-top: 22px; }
-  header { position: sticky; top: 0; z-index: 50; margin: -22px -20px 18px; padding: 18px 20px 14px; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
-  .app-shell-title { display:flex; align-items:center; gap:10px; }
-  .app-logo { width:38px; height:38px; border-radius:11px; box-shadow:0 4px 12px rgba(0,0,0,.12); flex:0 0 auto; }
-  .mobile-nav { position:fixed; left:0; right:0; bottom:0; z-index:1000; display:grid; grid-template-columns:repeat(4,1fr); gap:4px; padding:8px 10px calc(8px + env(safe-area-inset-bottom)); background:color-mix(in srgb, var(--surface) 94%, transparent); border-top:1px solid var(--border); box-shadow:0 -5px 22px rgba(0,0,0,.08); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
-  .mobile-nav button { border:0; background:transparent; color:var(--ink-soft); border-radius:12px; padding:7px 3px 6px; font:600 10px var(--sans); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; }
-  .mobile-nav button .nav-icon { font-size:20px; line-height:1; }
-  .mobile-nav button.active { color:var(--accent); background:var(--accent-soft); }
-  .mobile-nav button:active { transform:scale(.96); }
-  .mobile-action-fab { position:fixed; right:18px; bottom:86px; z-index:900; width:52px; height:52px; border-radius:50%; border:0; background:var(--ink); color:var(--bg); font-size:24px; box-shadow:0 8px 22px rgba(0,0,0,.2); cursor:pointer; }
-  .mobile-nav + .mobile-action-fab { display:block; }
-  .card { border-radius:16px; }
-  .stat { border-radius:14px; }
-  .btn { min-height:46px; border-radius:12px; }
-  input.amt, input.date-txt, input.loan-txt, select { min-height:42px; font-size:16px !important; }
-  .action-btn-sm, .add-btn, .rm-btn { min-height:40px; }
-  .salary-input-big { min-height:48px; }
-  #dashboardCard { scroll-margin-top:90px; }
-  #otherExpensesCard, #fixedRows, #fixedLoanContainer, #ccGrid, #expenseRows, #savingsPlanned { scroll-margin-top:90px; }
-  @media (min-width: 701px) {
-    .mobile-nav, .mobile-action-fab { display:none !important; }
-    body { padding-bottom:60px; }
-  }
-  @media (max-width: 600px) {
-    .wrap { padding:0 12px 10px; }
-    header { margin:0 -12px 14px; padding:14px 14px 12px; }
-    h1 { font-size:20px; }
-    .sub { font-size:12px; max-width:250px; }
-    .brand-eyebrow { font-size:9px; }
-    .card-head { padding:14px 14px 10px; }
-    .expense-row { padding:12px 14px; }
-    .savings-grid, .cc-grid { padding-left:14px; padding-right:14px; }
-    .salary-highlight-block { padding:13px 14px; }
-    .stamp-val { font-size:30px; }
-    .actions { margin-bottom:18px; }
-    .actions .btn { flex:1 1 100%; }
-    #monthSelector { max-width:170px; }
-    .mobile-action-fab { display:block; }
-  }
-
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="app-shell-title">
-      <img class="app-logo" src="icon.svg" alt="Budget Ledger">
-      <div>
-        <p class="brand-eyebrow">Personal Finance Manager</p>
-        <h1>Budget Ledger</h1>
-        <p class="sub">Plan, track, save, and stay on top of your monthly money.</p>
-      </div>
+    <div>
+      <p class="brand-eyebrow">Personal Finance Manager</p>
+      <h1>Budget Ledger</h1>
+      <p class="sub">Set what you plan to spend, track deadlines, and log your cash flow.</p>
     </div>
-    <button class="toggle" id="modeToggle" aria-pressed="false" aria-label="Toggle dark mode"></button>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button class="toggle" id="modeToggle" aria-pressed="false" aria-label="Toggle dark mode"></button>
+      <button class="rm-btn" id="exitAppBtn" title="Close app" aria-label="Close app" style="margin-bottom:0;">✕</button>
+    </div>
   </header>
 
   <!-- MONTH SELECTION HISTORY TOOLBAR -->
@@ -331,7 +279,11 @@
       <select id="monthSelector" style="font-family: var(--sans); font-size: 13px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); cursor: pointer;"></select>
       <button class="rm-btn" id="deleteHistoryBtn" title="Delete this archived month" type="button" style="width:30px; height:30px; font-size:14px; display:none;">🗑</button>
     </div>
-    <button class="action-btn-sm" id="allowNotificationsBtn" style="font-size: 11px;">🔔 Enable Due Alarms</button>
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <span id="syncStatus" style="font-size:11px; color:var(--ink-faint);">☁️ Sync not connected</span>
+      <button class="action-btn-sm" id="syncSetupBtn" style="font-size: 11px;">🔗 Set Up Sync</button>
+      <button class="action-btn-sm" id="allowNotificationsBtn" style="font-size: 11px;">🔔 Enable Due Alarms</button>
+    </div>
   </div>
 
   <!-- DASHBOARD (always-on summary view) -->
@@ -492,6 +444,8 @@
   <footer>Saved automatically in this browser. Change months above to review historic accounts.</footer>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
 
   const VARIABLE_CATS = ["Electricity", "Water", "Groceries", "Market"];
@@ -600,7 +554,175 @@
 
   function save() {
     localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    pushToRemote();
   }
+
+  /* ===================== PARTNER SYNC (Firebase Firestore) =====================
+     Two devices connected with the SAME Firebase project config + household code
+     read/write the same Firestore document, so either partner's edits show up on
+     the other's phone in real time. See the chat message for setup steps. */
+  const SYNC_CONFIG_KEY = "budgetLedgerSyncConfig_v1";
+  let syncConfig = null;
+  let db = null;
+  let unsubscribeSnapshot = null;
+  let applyingRemoteUpdate = false; // guards against re-pushing an update we just received
+  let pushTimer = null;
+
+  const deviceId = (function () {
+    let id = localStorage.getItem('budgetLedgerDeviceId');
+    if (!id) { id = 'dev-' + Math.random().toString(36).slice(2, 10); localStorage.setItem('budgetLedgerDeviceId', id); }
+    return id;
+  })();
+
+  function loadSyncConfig() {
+    try { const raw = localStorage.getItem(SYNC_CONFIG_KEY); return raw ? JSON.parse(raw) : null; }
+    catch (e) { return null; }
+  }
+  function saveSyncConfig(cfg) {
+    syncConfig = cfg;
+    localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(cfg));
+  }
+  function setSyncStatus(text, color) {
+    const el = document.getElementById('syncStatus');
+    if (el) { el.textContent = text; el.style.color = color || 'var(--ink-faint)'; }
+  }
+  function docRef() { return db.collection('households').doc(syncConfig.code); }
+  function archiveRef() { return db.collection('households').doc(syncConfig.code + '_archive'); }
+
+  function initSync() {
+    syncConfig = loadSyncConfig();
+    if (!syncConfig || !syncConfig.firebaseConfig || !syncConfig.code) {
+      setSyncStatus('☁️ Sync not connected');
+      return;
+    }
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(syncConfig.firebaseConfig);
+      db = firebase.firestore();
+      listenToRemote();
+      listenToRemoteArchive();
+    } catch (e) {
+      console.error(e);
+      setSyncStatus('⚠ Sync error — check config', 'var(--negative)');
+    }
+  }
+
+  // Applies a full incoming state object to the UI without triggering another push.
+  function applyRemoteState(remoteState) {
+    applyingRemoteUpdate = true;
+    const keepEditing = state.isEditingFixed;
+    state = ensureShape(Object.assign(defaultState(), remoteState));
+    state.isEditingFixed = keepEditing;
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    document.getElementById('salaryInput').value = state.salary || "";
+    document.getElementById('savingsPlanned').value = state.savingsPlanned || "";
+    document.getElementById('savingsActual').value = state.savingsActual || "";
+    document.getElementById('savingsDueDate').value = state.savingsDueDate || "";
+    document.getElementById('otherPlanned').value = state.otherExpenses.planned || "";
+    renderFixedSection();
+    renderExpenses();
+    renderCreditCards();
+    renderOtherExpenses();
+    renderLoans();
+    applyDetailView();
+    recalc();
+    applyingRemoteUpdate = false;
+  }
+
+  function listenToRemote() {
+    if (unsubscribeSnapshot) unsubscribeSnapshot();
+    setSyncStatus('🔄 Connecting…');
+    unsubscribeSnapshot = docRef().onSnapshot((snap) => {
+      if (!snap.exists) {
+        setSyncStatus('🔗 Connected — seeding shared data', 'var(--accent)');
+        pushToRemote(true);
+        return;
+      }
+      const data = snap.data();
+      if (!data || !data.json) return;
+      if (data.updatedBy === deviceId) { setSyncStatus('✅ Synced', 'var(--accent)'); return; }
+      try {
+        // Only auto-apply while viewing the current working month, not an archived one.
+        const picker = document.getElementById('monthSelector');
+        if (!picker || picker.value === 'current') {
+          applyRemoteState(JSON.parse(data.json));
+        }
+        setSyncStatus('✅ Synced just now', 'var(--accent)');
+      } catch (e) { console.error(e); applyingRemoteUpdate = false; }
+    }, (err) => {
+      console.error(err);
+      setSyncStatus('⚠ Sync connection lost', 'var(--negative)');
+    });
+  }
+
+  function pushToRemote(immediate) {
+    if (!db || !syncConfig || applyingRemoteUpdate) return;
+    clearTimeout(pushTimer);
+    const doPush = () => {
+      docRef().set({
+        json: JSON.stringify(state),
+        updatedBy: deviceId,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true }).catch(e => { console.error(e); setSyncStatus('⚠ Sync failed to save', 'var(--negative)'); });
+    };
+    if (immediate) doPush(); else pushTimer = setTimeout(doPush, 600);
+  }
+
+  function listenToRemoteArchive() {
+    archiveRef().onSnapshot((snap) => {
+      if (!snap.exists) { pushArchiveToRemote(true); return; }
+      const data = snap.data();
+      if (!data || !data.json || data.updatedBy === deviceId) return;
+      try {
+        localStorage.setItem(ARCHIVE_KEY, data.json);
+        syncMonthSelector();
+      } catch (e) { console.error(e); }
+    });
+  }
+  function pushArchiveToRemote(immediate) {
+    if (!db || !syncConfig) return;
+    const doPush = () => {
+      archiveRef().set({
+        json: localStorage.getItem(ARCHIVE_KEY) || "{}",
+        updatedBy: deviceId,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true }).catch(e => console.error(e));
+    };
+    if (immediate) doPush(); else setTimeout(doPush, 300);
+  }
+
+  document.getElementById('syncSetupBtn').addEventListener('click', () => {
+    const existing = loadSyncConfig();
+    const raw = prompt(
+      "Step 1 of 2 — Paste your Firebase project config as JSON.\n" +
+      "(Firebase Console → Project Settings → General → Your apps → SDK setup and configuration → Config)\n\n" +
+      "Example shape:\n{\"apiKey\":\"...\",\"authDomain\":\"...\",\"projectId\":\"...\",\"storageBucket\":\"...\",\"messagingSenderId\":\"...\",\"appId\":\"...\"}",
+      existing ? JSON.stringify(existing.firebaseConfig) : ""
+    );
+    if (!raw) return;
+    let parsedConfig;
+    try { parsedConfig = JSON.parse(raw); }
+    catch (e) { alert("That didn't look like valid JSON. Copy the whole config object exactly as Firebase shows it, then try again."); return; }
+
+    const code = prompt(
+      "Step 2 of 2 — Enter a Household Code (any word/phrase, e.g. \"our-budget-2026\").\n" +
+      "Use the EXACT same code on your partner's phone so you both connect to the same shared data.",
+      existing ? existing.code : ""
+    );
+    if (!code || !code.trim()) return;
+
+    saveSyncConfig({ firebaseConfig: parsedConfig, code: code.trim() });
+    if (unsubscribeSnapshot) unsubscribeSnapshot();
+    initSync();
+    alert("Sync connected! Have your partner tap “🔗 Set Up Sync” too and enter the exact same config and household code.");
+  });
+
+  document.getElementById('exitAppBtn').addEventListener('click', () => {
+    window.close();
+    setTimeout(() => {
+      alert("Your browser/phone doesn't allow a page to close itself this way. Use your device's Back button, Home gesture, or swipe the app away from Recents to exit.");
+    }, 300);
+  });
+  /* =================== END PARTNER SYNC =================== */
 
   function num(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
@@ -1511,6 +1633,7 @@
     if (!confirm(`Delete the archived ledger for ${label}?\n\nThis can't be undone.`)) return;
     delete db[target];
     localStorage.setItem(ARCHIVE_KEY, JSON.stringify(db));
+    pushArchiveToRemote(true);
     syncMonthSelector();
     picker.value = "current";
     picker.dispatchEvent(new Event('change'));
@@ -1541,6 +1664,7 @@
     const db = getHistoryIndex();
     db[stampKey] = JSON.parse(JSON.stringify(state));
     localStorage.setItem(ARCHIVE_KEY, JSON.stringify(db));
+    pushArchiveToRemote(true);
 
     syncMonthSelector();
     document.getElementById('monthSelector').value = stampKey;
@@ -1669,6 +1793,7 @@
   });
 
   // Initial Boot Sequence
+  initSync();
   syncMonthSelector();
   renderFixedSection();
   renderExpenses();
@@ -1681,28 +1806,6 @@
   if (Notification.permission === "granted") {
     setTimeout(() => { checkDailyAlarms(false); }, 1000);
   }
-</script>
-
-  <nav class="mobile-nav" aria-label="App navigation">
-    <button class="active" data-target="dashboardCard"><span class="nav-icon">⌂</span>Home</button>
-    <button data-target="expenseRows"><span class="nav-icon">₱</span>Budget</button>
-    <button data-target="fixedLoanContainer"><span class="nav-icon">▣</span>Loans</button>
-    <button data-target="savingsPlanned"><span class="nav-icon">◈</span>Savings</button>
-  </nav>
-  <button class="mobile-action-fab" id="mobileTopBtn" aria-label="Back to dashboard">↑</button>
-
-<script>
-  // Mobile app navigation
-  document.querySelectorAll(".mobile-nav button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const target = document.getElementById(btn.dataset.target);
-      if (target) target.scrollIntoView({behavior:"smooth", block:"start"});
-      document.querySelectorAll(".mobile-nav button").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-    });
-  });
-  document.getElementById("mobileTopBtn")?.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
-  if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
 </script>
 </body>
 </html>
