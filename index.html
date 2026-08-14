@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Budget Ledger</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#2F6F5E">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
   :root {
     --bg: #F7F5F1;
@@ -1805,6 +1809,12 @@
 
   if (Notification.permission === "granted") {
     setTimeout(() => { checkDailyAlarms(false); }, 1000);
+  }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(e => console.error('SW registration failed', e));
+    });
   }
 </script>
 </body>
