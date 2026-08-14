@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Budget Ledger</title>
+<title>BudgetApp — Budget Ledger</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#2F6F5E">
 <link rel="apple-touch-icon" href="./icon-192.png">
@@ -260,6 +260,499 @@
     .oe-log-form input.amt, .oe-log-form .add-btn { flex: 1; width: 100%; }
     .cc-grid { grid-template-columns: 1fr; }
   }
+
+/* =========================================================
+   BUDGETAPP MOBILE-FIRST UI REFRESH
+   Existing functionality is intentionally preserved.
+   ========================================================= */
+
+:root {
+  --brand-blue: #183B73;
+  --brand-blue-2: #245AA3;
+  --brand-gold: #F5C542;
+  --mobile-radius: 16px;
+}
+
+html, body {
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(36,90,163,.12), transparent 38%),
+    var(--bg);
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+}
+
+.wrap {
+  width: min(1180px, 100%);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 18px 18px calc(30px + env(safe-area-inset-bottom));
+}
+
+/* App-style top bar */
+header {
+  position: relative;
+  margin: -18px -18px 18px;
+  padding: max(16px, env(safe-area-inset-top)) 18px 16px;
+  padding-top: max(16px, env(safe-area-inset-top));
+  background: linear-gradient(135deg, #10284d, #183B73 55%, #245AA3);
+  color: #fff;
+  border-bottom-left-radius: 22px;
+  border-bottom-right-radius: 22px;
+  box-shadow: 0 8px 24px rgba(16,40,77,.20);
+  align-items: center;
+}
+
+header::before {
+  content: "";
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  background:
+    url("./icon-192.png") center/cover no-repeat,
+    linear-gradient(135deg, #183B73, #245AA3);
+  box-shadow: 0 4px 14px rgba(0,0,0,.22);
+  flex: 0 0 48px;
+  order: 0;
+}
+
+header > div:first-child {
+  display: grid;
+  grid-template-columns: 48px minmax(0,1fr);
+  column-gap: 12px;
+  align-items: center;
+  flex: 1;
+}
+
+header > div:first-child .brand-eyebrow {
+  grid-column: 2;
+  grid-row: 1;
+  color: rgba(255,255,255,.65);
+  margin: 0 0 2px;
+  font-size: 9px;
+}
+
+header > div:first-child h1 {
+  grid-column: 2;
+  grid-row: 2;
+  color: #fff;
+  font-size: clamp(20px, 5vw, 28px);
+  line-height: 1.05;
+  margin: 0;
+  letter-spacing: -.02em;
+}
+
+header > div:first-child .sub {
+  display: none;
+}
+
+header > div:last-child {
+  gap: 7px !important;
+}
+
+.toggle {
+  width: 42px;
+  height: 25px;
+  background: rgba(255,255,255,.13);
+  border-color: rgba(255,255,255,.25);
+}
+
+.toggle::after {
+  width: 19px;
+  height: 19px;
+  background: var(--brand-gold);
+}
+
+html.dark .toggle::after {
+  transform: translateX(17px);
+}
+
+#exitAppBtn {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50%;
+  background: rgba(255,255,255,.10);
+  color: rgba(255,255,255,.85);
+  border-color: rgba(255,255,255,.22);
+}
+
+/* History / quick controls */
+.wrap > .card:first-of-type {
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--surface) 90%, transparent) !important;
+  border-radius: 14px;
+  box-shadow: 0 5px 18px rgba(0,0,0,.07);
+}
+
+.wrap > .card:first-of-type > div:first-child {
+  flex: 1 1 100%;
+}
+
+.wrap > .card:first-of-type > div:last-child {
+  width: 100%;
+  justify-content: stretch;
+}
+
+#syncSetupBtn,
+#allowNotificationsBtn {
+  flex: 1;
+  min-height: 38px;
+}
+
+/* Cards */
+.card {
+  border-radius: var(--mobile-radius);
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px rgba(20,30,40,.045);
+}
+
+.card-head {
+  padding: 16px 16px 12px;
+}
+
+.card-title {
+  font-size: 13px;
+}
+
+.card-hint {
+  line-height: 1.35;
+}
+
+/* Dashboard gets stronger app-like hierarchy */
+#dashboardCard {
+  border: 0;
+  box-shadow: 0 7px 24px rgba(24,59,115,.10);
+}
+
+#dashboardCard .card-head {
+  padding-bottom: 8px;
+}
+
+.salary-highlight-block {
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 8px;
+  padding: 10px;
+  background: linear-gradient(135deg, var(--accent-soft), var(--surface));
+  border-radius: 14px;
+}
+
+.salary-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 10px;
+  gap: 5px;
+}
+
+.salary-col-label {
+  font-size: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.salary-col-val,
+.salary-input-big {
+  font-size: clamp(16px, 4.2vw, 21px);
+}
+
+#toggleDetailBtn {
+  min-height: 46px;
+  border-radius: 13px;
+  font-size: 13px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.04);
+}
+
+/* Touch-friendly fields */
+input.amt,
+input.date-txt,
+input.loan-txt,
+select {
+  min-height: 42px;
+  font-size: 15px !important;
+  border-radius: 9px !important;
+}
+
+button,
+select,
+input {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+.action-btn-sm,
+.rm-btn {
+  min-height: 38px;
+}
+
+.rm-btn {
+  min-width: 38px;
+}
+
+/* Expense rows */
+.expense-row {
+  padding: 14px 16px;
+  gap: 10px;
+}
+
+.expense-row-header {
+  min-height: 30px;
+}
+
+.cat-name {
+  font-size: 14px;
+}
+
+.diff {
+  font-size: 14px;
+}
+
+.expense-inputs-grid {
+  gap: 9px;
+}
+
+/* Mobile-friendly loan cards */
+#loanRows {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+}
+
+#loanRows > div {
+  border-radius: 13px !important;
+}
+
+/* Credit cards */
+.cc-grid {
+  gap: 10px;
+}
+
+.cc-box {
+  border-radius: 13px;
+  padding: 34px 12px 12px;
+}
+
+/* Stats */
+.stat-grid {
+  gap: 9px;
+}
+
+.stat {
+  border-radius: 13px;
+  padding: 13px;
+}
+
+.stat-val {
+  font-size: 16px;
+}
+
+.stamp {
+  border-radius: 16px;
+  padding: 24px 16px;
+  box-shadow: 0 3px 14px rgba(0,0,0,.04);
+}
+
+.stamp-val {
+  font-size: clamp(28px, 9vw, 38px);
+}
+
+.actions {
+  position: sticky;
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  z-index: 30;
+  padding: 8px;
+  margin: 0 -8px 20px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.btn {
+  min-height: 48px;
+  min-width: 0;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #183B73, #245AA3);
+  border-color: #183B73;
+}
+
+/* Tablet */
+@media (min-width: 601px) {
+  .wrap {
+    padding: 28px 24px 40px;
+  }
+
+  header {
+    margin: -28px -24px 24px;
+    padding: 22px 24px;
+    border-radius: 0 0 24px 24px;
+  }
+
+  header > div:first-child .sub {
+    display: block;
+    color: rgba(255,255,255,.72);
+    grid-column: 2;
+    grid-row: 3;
+    margin-top: 3px;
+  }
+
+  .wrap > .card:first-of-type {
+    display: flex;
+  }
+
+  .wrap > .card:first-of-type > div:first-child {
+    flex: 1;
+  }
+
+  .wrap > .card:first-of-type > div:last-child {
+    width: auto;
+  }
+
+  #dashboardCard {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+  }
+
+  #dashboardCard .card-head {
+    padding: 18px 16px;
+    border-right: 1px solid var(--border);
+  }
+
+  #dashboardCard > div:last-child {
+    padding: 18px 20px !important;
+  }
+
+  #detailWrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+
+  #detailWrap > .card {
+    margin-bottom: 0;
+  }
+
+  #otherExpensesCard,
+  #detailWrap > .card:nth-last-child(1) {
+    grid-column: 1 / -1;
+  }
+
+  .stat-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .actions {
+    position: static;
+    background: none;
+    backdrop-filter: none;
+    padding: 0;
+    margin: 0 0 30px;
+  }
+}
+
+/* Desktop / laptop */
+@media (min-width: 900px) {
+  body {
+    padding-bottom: 20px;
+  }
+
+  .wrap {
+    padding: 30px 30px 40px;
+  }
+
+  header {
+    margin: -30px -30px 26px;
+    padding: 24px 30px;
+  }
+
+  .wrap > .card:first-of-type {
+    position: static;
+  }
+
+  #dashboardCard {
+    grid-template-columns: 260px 1fr;
+  }
+
+  #detailWrap {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #otherExpensesCard {
+    grid-column: 1 / -1;
+  }
+
+  footer {
+    padding-bottom: 10px;
+  }
+}
+
+/* Small phones */
+@media (max-width: 380px) {
+  .wrap {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+
+  header {
+    margin-left: -11px;
+    margin-right: -11px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  header::before {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
+  header > div:first-child {
+    grid-template-columns: 42px minmax(0,1fr);
+    column-gap: 9px;
+  }
+
+  header > div:first-child h1 {
+    font-size: 19px;
+  }
+
+  .salary-highlight-block {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+/* Better keyboard/focus visibility on desktop and mobile */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Respect devices that have a notch / home indicator */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
 </style>
 </head>
 <body>
