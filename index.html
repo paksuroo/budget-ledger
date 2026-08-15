@@ -1607,9 +1607,8 @@
 
     updateSalarySection(fullTotalActual);
     const totalPayablePlanned = fixPlanned + varPlanned
-      + num(state.otherExpenses.planned)
-      + state.loans.reduce((s, l) => s + num(l.amount), 0)
-      + state.creditCards.reduce((s, cc) => s + (cc.crossedOut ? 0 : num(cc.amount)), 0);
+  + state.loans.reduce((s, l) => s + num(l.amount), 0)
+  + state.creditCards.reduce((s, cc) => s + (cc.crossedOut ? 0 : num(cc.amount)), 0);
     const fixedBillsEl = document.getElementById('fixedBillsValue');
     if (fixedBillsEl) fixedBillsEl.textContent = fmt(totalPayablePlanned, false);
     const savedEl = document.getElementById('savedValue');
