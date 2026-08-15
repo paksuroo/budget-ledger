@@ -1,4 +1,4 @@
-const CACHE_NAME = 'budgetapp-v6';
+const CACHE_NAME = 'budgetapp-v7';
 
 const APP_SHELL = [
   './',
