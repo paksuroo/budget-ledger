@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BudgetApp — Budget Ledger</title>
+<title>Budget Ledger</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#2F6F5E">
 <link rel="apple-touch-icon" href="./icon-192.png">
@@ -234,15 +234,16 @@
   .cc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding: 12px 16px 16px; }
   .cc-box {
     background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
-    padding: 30px 12px 12px; display: flex; flex-direction: column; gap: 8px; position: relative; min-width: 0;
+    padding: 12px; display:flex; flex-direction:column; gap:8px; min-width:0;
   }
   .cc-box.crossed-out { opacity: 0.5; }
   .cc-box.crossed-out .cc-name, .cc-box.crossed-out .cc-due { text-decoration: line-through; }
   .cc-name { font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 5px; }
   .cc-due { font-size: 10.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .03em; }
+  .cc-topline { display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
   .cc-crossout-btn {
-    position: absolute; top: 8px; right: 8px; font-size: 10px; line-height: 1; color: var(--ink-faint);
-    background: none; border: 1px solid var(--border); border-radius: 5px; padding: 4px 5px; cursor: pointer;
+    position:static; flex-shrink:0; font-size:10px; line-height:1; color:var(--ink-faint);
+    background:none; border:1px solid var(--border); border-radius:5px; padding:4px 5px; cursor:pointer;
   }
   .cc-crossout-btn:hover { color: var(--negative); border-color: var(--negative); }
   .cc-crossout-btn.active { color: var(--negative); border-color: var(--negative); background: var(--negative-soft); }
@@ -261,501 +262,342 @@
     .cc-grid { grid-template-columns: 1fr; }
   }
 
-/* =========================================================
-   BUDGETAPP MOBILE-FIRST UI REFRESH
-   Existing functionality is intentionally preserved.
-   ========================================================= */
-
-:root {
-  --brand-blue: #183B73;
-  --brand-blue-2: #245AA3;
-  --brand-gold: #F5C542;
-  --mobile-radius: 16px;
-}
-
-html, body {
-  min-height: 100%;
-}
-
-body {
-  background:
-    radial-gradient(circle at 50% -10%, rgba(36,90,163,.12), transparent 38%),
-    var(--bg);
-  padding-bottom: calc(80px + env(safe-area-inset-bottom));
-}
-
-.wrap {
-  width: min(1180px, 100%);
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 18px 18px calc(30px + env(safe-area-inset-bottom));
-}
-
-/* App-style top bar */
-header {
-  position: relative;
-  margin: -18px -18px 18px;
-  padding: max(16px, env(safe-area-inset-top)) 18px 16px;
-  padding-top: max(16px, env(safe-area-inset-top));
-  background: linear-gradient(135deg, #10284d, #183B73 55%, #245AA3);
-  color: #fff;
-  border-bottom-left-radius: 22px;
-  border-bottom-right-radius: 22px;
-  box-shadow: 0 8px 24px rgba(16,40,77,.20);
-  align-items: center;
-}
-
-header::before {
-  content: "";
-  width: 48px;
-  height: 48px;
-  border-radius: 13px;
-  background:
-    url("./icon-192.png") center/cover no-repeat,
-    linear-gradient(135deg, #183B73, #245AA3);
-  box-shadow: 0 4px 14px rgba(0,0,0,.22);
-  flex: 0 0 48px;
-  order: 0;
-}
-
-header > div:first-child {
-  display: grid;
-  grid-template-columns: 48px minmax(0,1fr);
-  column-gap: 12px;
-  align-items: center;
-  flex: 1;
-}
-
-header > div:first-child .brand-eyebrow {
-  grid-column: 2;
-  grid-row: 1;
-  color: rgba(255,255,255,.65);
-  margin: 0 0 2px;
-  font-size: 9px;
-}
-
-header > div:first-child h1 {
-  grid-column: 2;
-  grid-row: 2;
-  color: #fff;
-  font-size: clamp(20px, 5vw, 28px);
-  line-height: 1.05;
-  margin: 0;
-  letter-spacing: -.02em;
-}
-
-header > div:first-child .sub {
-  display: none;
-}
-
-header > div:last-child {
-  gap: 7px !important;
-}
-
-.toggle {
-  width: 42px;
-  height: 25px;
-  background: rgba(255,255,255,.13);
-  border-color: rgba(255,255,255,.25);
-}
-
-.toggle::after {
-  width: 19px;
-  height: 19px;
-  background: var(--brand-gold);
-}
-
-html.dark .toggle::after {
-  transform: translateX(17px);
-}
-
-#exitAppBtn {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 50%;
-  background: rgba(255,255,255,.10);
-  color: rgba(255,255,255,.85);
-  border-color: rgba(255,255,255,.22);
-}
-
-/* History / quick controls */
-.wrap > .card:first-of-type {
-  position: sticky;
-  top: 8px;
-  z-index: 20;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  background: color-mix(in srgb, var(--surface) 90%, transparent) !important;
-  border-radius: 14px;
-  box-shadow: 0 5px 18px rgba(0,0,0,.07);
-}
-
-.wrap > .card:first-of-type > div:first-child {
-  flex: 1 1 100%;
-}
-
-.wrap > .card:first-of-type > div:last-child {
-  width: 100%;
-  justify-content: stretch;
-}
-
-#syncSetupBtn,
-#allowNotificationsBtn {
-  flex: 1;
-  min-height: 38px;
-}
-
-/* Cards */
-.card {
-  border-radius: var(--mobile-radius);
-  margin-bottom: 14px;
-  box-shadow: 0 2px 10px rgba(20,30,40,.045);
-}
-
-.card-head {
-  padding: 16px 16px 12px;
-}
-
-.card-title {
-  font-size: 13px;
-}
-
-.card-hint {
-  line-height: 1.35;
-}
-
-/* Dashboard gets stronger app-like hierarchy */
-#dashboardCard {
-  border: 0;
-  box-shadow: 0 7px 24px rgba(24,59,115,.10);
-}
-
-#dashboardCard .card-head {
-  padding-bottom: 8px;
-}
-
-.salary-highlight-block {
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  gap: 8px;
-  padding: 10px;
-  background: linear-gradient(135deg, var(--accent-soft), var(--surface));
-  border-radius: 14px;
-}
-
-.salary-col {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 11px;
-  padding: 10px;
-  gap: 5px;
-}
-
-.salary-col-label {
-  font-size: 9px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.salary-col-val,
-.salary-input-big {
-  font-size: clamp(16px, 4.2vw, 21px);
-}
-
-#toggleDetailBtn {
-  min-height: 46px;
-  border-radius: 13px;
-  font-size: 13px;
-  box-shadow: 0 3px 10px rgba(0,0,0,.04);
-}
-
-/* Touch-friendly fields */
-input.amt,
-input.date-txt,
-input.loan-txt,
-select {
-  min-height: 42px;
-  font-size: 15px !important;
-  border-radius: 9px !important;
-}
-
-button,
-select,
-input {
-  -webkit-tap-highlight-color: transparent;
-}
-
-button {
-  touch-action: manipulation;
-}
-
-.action-btn-sm,
-.rm-btn {
-  min-height: 38px;
-}
-
-.rm-btn {
-  min-width: 38px;
-}
-
-/* Expense rows */
-.expense-row {
-  padding: 14px 16px;
-  gap: 10px;
-}
-
-.expense-row-header {
-  min-height: 30px;
-}
-
-.cat-name {
-  font-size: 14px;
-}
-
-.diff {
-  font-size: 14px;
-}
-
-.expense-inputs-grid {
-  gap: 9px;
-}
-
-/* Mobile-friendly loan cards */
-#loanRows {
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
-}
-
-#loanRows > div {
-  border-radius: 13px !important;
-}
-
-/* Credit cards */
-.cc-grid {
-  gap: 10px;
-}
-
-.cc-box {
-  border-radius: 13px;
-  padding: 34px 12px 12px;
-}
-
-/* Stats */
-.stat-grid {
-  gap: 9px;
-}
-
-.stat {
-  border-radius: 13px;
-  padding: 13px;
-}
-
-.stat-val {
-  font-size: 16px;
-}
-
-.stamp {
-  border-radius: 16px;
-  padding: 24px 16px;
-  box-shadow: 0 3px 14px rgba(0,0,0,.04);
-}
-
-.stamp-val {
-  font-size: clamp(28px, 9vw, 38px);
-}
-
-.actions {
-  position: sticky;
-  bottom: calc(8px + env(safe-area-inset-bottom));
-  z-index: 30;
-  padding: 8px;
-  margin: 0 -8px 20px;
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.btn {
-  min-height: 48px;
-  min-width: 0;
-  border-radius: 12px;
-  font-size: 13px;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #183B73, #245AA3);
-  border-color: #183B73;
-}
-
-/* Tablet */
-@media (min-width: 601px) {
-  .wrap {
-    padding: 28px 24px 40px;
+  /* ============================================================
+     Budget Ledger — responsive product UI refresh
+     Desktop: app shell + sidebar + dashboard grid
+     Mobile: compact header + bottom navigation
+     ============================================================ */
+  :root {
+    --bg: #070b12;
+    --surface: #0f151f;
+    --surface-2: #151c27;
+    --surface-3: #1a2230;
+    --ink: #f1f4f7;
+    --ink-soft: #a8b0bd;
+    --ink-faint: #667180;
+    --border: #26303e;
+    --accent: #5bd66f;
+    --accent-soft: #122c1a;
+    --negative: #ff6b55;
+    --negative-soft: #321b1b;
+    --positive: #5bd66f;
+    --cat-fixed: #55d86d;
+    --cat-variable: #3996ff;
+    --cat-other: #ff9b30;
+    --cat-loans: #9b68e8;
+    --cat-savings: #ffd21f;
+    --radius: 14px;
+    --sidebar: 232px;
+    --topbar: 74px;
+  }
+  html.dark {
+    --bg: #070b12;
+    --surface: #0f151f;
+    --surface-2: #151c27;
+    --surface-3: #1a2230;
+    --ink: #f1f4f7;
+    --ink-soft: #a8b0bd;
+    --ink-faint: #667180;
+    --border: #26303e;
+    --accent: #5bd66f;
+    --accent-soft: #122c1a;
+    --negative: #ff6b55;
+    --negative-soft: #321b1b;
+    --positive: #5bd66f;
+  }
+  html:not(.dark) {
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --surface-2: #f1f4f7;
+    --surface-3: #e9edf2;
+    --ink: #15202b;
+    --ink-soft: #5d6977;
+    --ink-faint: #8c98a6;
+    --border: #dfe5eb;
+    --accent: #2eae4f;
+    --accent-soft: #e7f7eb;
+    --positive: #2eae4f;
   }
 
-  header {
-    margin: -28px -24px 24px;
-    padding: 22px 24px;
-    border-radius: 0 0 24px 24px;
+  body {
+    background:
+      radial-gradient(circle at 80% -20%, rgba(54, 109, 255, .09), transparent 30%),
+      var(--bg);
+    min-height: 100vh;
+    padding: 0 0 28px;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255,255,255,.015), transparent 28%);
+    z-index: -1;
   }
 
-  header > div:first-child .sub {
-    display: block;
-    color: rgba(255,255,255,.72);
-    grid-column: 2;
-    grid-row: 3;
-    margin-top: 3px;
-  }
-
-  .wrap > .card:first-of-type {
-    display: flex;
-  }
-
-  .wrap > .card:first-of-type > div:first-child {
-    flex: 1;
-  }
-
-  .wrap > .card:first-of-type > div:last-child {
-    width: auto;
-  }
-
-  #dashboardCard {
-    display: grid;
-    grid-template-columns: 220px 1fr;
-  }
-
-  #dashboardCard .card-head {
-    padding: 18px 16px;
+  .app-sidebar {
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--sidebar);
+    padding: 24px 16px 18px;
+    background: rgba(9, 15, 24, .96);
     border-right: 1px solid var(--border);
-  }
-
-  #dashboardCard > div:last-child {
-    padding: 18px 20px !important;
-  }
-
-  #detailWrap {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    align-items: start;
-  }
-
-  #detailWrap > .card {
-    margin-bottom: 0;
-  }
-
-  #otherExpensesCard,
-  #detailWrap > .card:nth-last-child(1) {
-    grid-column: 1 / -1;
-  }
-
-  .stat-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .actions {
-    position: static;
-    background: none;
-    backdrop-filter: none;
-    padding: 0;
-    margin: 0 0 30px;
-  }
-}
-
-/* Desktop / laptop */
-@media (min-width: 900px) {
-  body {
-    padding-bottom: 20px;
-  }
-
-  .wrap {
-    padding: 30px 30px 40px;
-  }
-
-  header {
-    margin: -30px -30px 26px;
-    padding: 24px 30px;
-  }
-
-  .wrap > .card:first-of-type {
-    position: static;
-  }
-
-  #dashboardCard {
-    grid-template-columns: 260px 1fr;
-  }
-
-  #detailWrap {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  #otherExpensesCard {
-    grid-column: 1 / -1;
-  }
-
-  footer {
-    padding-bottom: 10px;
-  }
-}
-
-/* Small phones */
-@media (max-width: 380px) {
-  .wrap {
-    padding-left: 11px;
-    padding-right: 11px;
-  }
-
-  header {
-    margin-left: -11px;
-    margin-right: -11px;
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  header::before {
-    width: 42px;
-    height: 42px;
-    flex-basis: 42px;
-  }
-
-  header > div:first-child {
-    grid-template-columns: 42px minmax(0,1fr);
-    column-gap: 9px;
-  }
-
-  header > div:first-child h1 {
-    font-size: 19px;
-  }
-
-  .salary-highlight-block {
-    grid-template-columns: 1fr;
-  }
-
-  .actions {
+    display: flex;
     flex-direction: column;
+    backdrop-filter: blur(16px);
+  }
+  .sidebar-brand { display:flex; align-items:center; gap:12px; padding:0 6px 28px; }
+  .brand-mark {
+    width:44px; height:44px; border-radius:11px; display:grid; place-items:center;
+    background:linear-gradient(145deg,#1b6b3b,#123522); color:#63df79;
+    border:1px solid rgba(91,214,111,.25); font-size:25px;
+    box-shadow:0 8px 24px rgba(0,0,0,.22);
+  }
+  .brand-name { font-size:18px; font-weight:800; line-height:1.05; letter-spacing:-.02em; }
+  .brand-name span { color:var(--accent); display:block; }
+  .sidebar-nav { display:grid; gap:5px; }
+  .sidebar-nav button {
+    width:100%; border:0; background:transparent; color:#aeb7c4; border-radius:11px;
+    padding:11px 12px; display:flex; align-items:center; gap:12px; font:600 14px var(--sans);
+    text-align:left; cursor:pointer; transition:.18s ease;
+  }
+  .sidebar-nav button:hover { background:#151f2b; color:#f4f7fa; }
+  .sidebar-nav button.active { background:linear-gradient(90deg,#17372b,#143025); color:#f5f8fa; box-shadow:inset 3px 0 var(--accent); }
+  .nav-icon { width:22px; text-align:center; font-size:18px; opacity:.95; }
+  .sidebar-spacer { flex:1; }
+  .sidebar-control {
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    color:#aeb7c4; font-size:12px; padding:10px 5px; border-top:1px solid #202a36;
+  }
+  .sidebar-footer { color:#667180; font-size:10px; line-height:1.45; padding:16px 5px 0; }
+  .side-switch { width:38px; height:22px; border-radius:20px; border:1px solid #304052; background:#1d2733; position:relative; }
+  .side-switch::after { content:""; width:16px; height:16px; border-radius:50%; background:#5bd66f; position:absolute; top:2px; right:2px; }
+
+  .mobile-nav { display:none; }
+
+  .wrap {
+    max-width:none;
+    width:auto;
+    margin:0 0 0 var(--sidebar);
+    padding:0 28px 30px;
+  }
+  header {
+    height:var(--topbar); margin:0 -28px 18px; padding:0 28px;
+    display:flex; align-items:center; border-bottom:1px solid var(--border);
+    background:rgba(7,11,18,.82); backdrop-filter:blur(18px); position:sticky; top:0; z-index:80;
+  }
+  html:not(.dark) header { background:rgba(245,247,250,.88); }
+  header > div:first-child { display:flex; align-items:center; gap:12px; }
+  .brand-eyebrow { display:none; }
+  h1 { font-size:18px; font-weight:800; }
+  .sub { display:none; }
+  header::before {
+    content:""; width:34px; height:34px; border-radius:9px; background:#153a25;
+    box-shadow:inset 0 0 0 1px rgba(91,214,111,.18); margin-right:2px;
+  }
+  header::after { content:"Budget Ledger"; position:absolute; left:70px; top:24px; font-size:0; }
+  header > div:first-child h1 { color:var(--ink); }
+  header > div:first-child h1::after { content:""; }
+  header > div:last-child { margin-left:auto; }
+  .toggle { width:44px; height:44px; border-radius:11px; background:var(--surface); border-color:var(--border); margin:0; }
+  .toggle::after { width:20px; height:20px; top:11px; left:11px; }
+  html.dark .toggle::after { transform:translateX(0); background:#f3f5f7; }
+  .rm-btn#exitAppBtn { display:none; }
+
+  .card {
+    background:linear-gradient(145deg, rgba(19,27,38,.98), rgba(13,19,28,.98));
+    border:1px solid #273240; border-radius:14px; margin-bottom:16px;
+    box-shadow:0 8px 26px rgba(0,0,0,.10);
+  }
+  html:not(.dark) .card { background:var(--surface); box-shadow:0 6px 18px rgba(22,35,50,.05); }
+  .card-head { padding:15px 18px 11px; }
+  .card-title { font-size:14px; font-weight:800; letter-spacing:.01em; }
+  .card-hint { color:var(--ink-faint); }
+  /* Compact section headers: remove explanatory subtitles to preserve space. */
+  .card-hint, .summary-note { display:none !important; }
+
+  /* History / utilities toolbar */
+  .wrap > .card[style*="Ledger History"] {
+    padding:9px 14px !important; min-height:46px; border-radius:10px; margin-bottom:16px;
+  }
+  .wrap > .card[style*="Ledger History"] label { font-size:10px !important; letter-spacing:.08em; }
+  .wrap > .card[style*="Ledger History"] select { min-width:130px; height:32px; }
+  .wrap > .card[style*="Ledger History"] .action-btn-sm { background:transparent; border-color:#2d3a49; }
+
+  /* Dashboard */
+  #dashboardCard { border:0; background:transparent; box-shadow:none; overflow:visible; display:block; }
+  #dashboardCard > .card-head { display:none; }
+  #dashboardCard > div:last-child { padding:0 !important; display:grid; grid-template-columns:minmax(0,1.55fr) minmax(260px,.72fr); gap:16px; }
+  #dashboardCard .dash-block { margin:0; }
+  #dashboardCard .dash-block:first-child { grid-column:1 / -1; order:-2; }
+  #dashboardCard .dash-block:nth-child(2) {
+    grid-column:1; grid-row:2; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px;
+  }
+  #dashboardCard .dash-block:first-child { background:transparent; }
+  #dashboardCard .dash-block:first-child .salary-highlight-block { display:none; }
+  #dashboardCard .dash-block:first-child .dash-subtext { display:none; }
+  #dashboardCard .dash-block:first-child .dash-row { margin-bottom:8px; }
+  #dashboardCard .dash-block:nth-child(2)::before { content:"FUND ALLOCATION"; display:block; font-size:17px; font-weight:800; margin-bottom:18px; }
+  #allocBars { display:grid; gap:12px; }
+  .alloc-bar-row { margin:0; min-width:0; }
+  .alloc-bar-head { display:block; font-size:13px; margin-bottom:6px; }
+  .alloc-bar-name { display:block; color:var(--ink); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .alloc-bar-val { display:block; margin-top:5px; font-size:14px; color:var(--ink); font-family:var(--mono); font-weight:700; text-align:right; }
+  .alloc-bar-track { height:8px; border:0; background:#1c2531; }
+  .alloc-bar-fill { border-radius:5px; }
+
+  /* Dashboard summary: one large value row aligned with the allocation categories */
+  .dashboard-summary { grid-column:2; grid-row:2; display:grid; grid-template-columns:1fr; gap:12px; align-content:stretch; }
+  .summary-tile {
+    background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px 18px; min-height:0;
+    display:flex; align-items:center; justify-content:space-between; gap:14px; position:relative; overflow:hidden;
+  }
+  .summary-tile::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent); opacity:.8; }
+  .summary-label { color:var(--ink-soft); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; }
+  .summary-value { margin-top:0; color:var(--accent); font:800 28px var(--mono); letter-spacing:-.03em; text-align:right; white-space:nowrap; }
+  .summary-value.negative { color:var(--negative); }
+  .summary-value.positive { color:var(--positive); }
+  .summary-note { display:none; }
+  .salary-mini { display:none !important; }
+  #dashExpensesPaid, #dashSpendingLimit { display:none; }
+
+  #toggleDetailBtn { display:none; }
+  #detailWrap { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; align-items:start; }
+  #detailWrap > .card { margin:0; min-width:0; }
+  #fixedAmountsCard { grid-column:1; grid-row:1; }
+  #variableExpensesCard { grid-column:1; grid-row:2; }
+  #creditCardsCard { grid-column:2; grid-row:1; }
+  #fixedLoanCard { grid-column:2; grid-row:2; }
+  #otherExpensesCard { grid-column:1 / -1; grid-row:3; }
+  #otherExpensesCard.collapsed #otherExpensesBody { display:none; }
+  .collapse-btn { min-width:54px; }
+
+  .expense-row { padding:11px 16px; }
+  .expense-row-header { min-height:25px; }
+  .cat-name { font-size:13px; }
+  .expense-inputs-grid.with-date { grid-template-columns:1fr 1fr 1fr; }
+  .input-sublabel { color:var(--ink-faint); }
+  input.amt, input.date-txt, input.loan-txt { background:#111923; border-color:#2a3543; color:var(--ink); border-radius:7px; }
+  html:not(.dark) input.amt, html:not(.dark) input.date-txt, html:not(.dark) input.loan-txt { background:var(--surface-2); border-color:var(--border); }
+  .add-loan-row { padding:10px 16px 14px; }
+  .add-btn { border-style:solid; border-color:#2c3a49; background:transparent; }
+  .action-btn-sm { background:transparent; border-color:#2c3a49; }
+  .action-btn-sm:hover, .add-btn:hover { border-color:var(--accent); background:var(--accent-soft); }
+
+  /* Category accents */
+  #fixedAmountsCard .card-title { color:#5bd66f; }
+  #fixedLoanCard .card-title { color:#9b68e8; }
+  #detailWrap > .card:nth-of-type(2) .card-title { color:#3996ff; }
+  #detailWrap > .card:nth-of-type(3) .card-title { color:#ff9b30; }
+  #otherExpensesCard .card-title { color:#b17ff5; }
+
+  .cc-grid { grid-template-columns:1fr; padding:0 16px 14px; gap:0; }
+  .cc-box { border:0; border-top:1px solid var(--border); border-radius:0; padding:12px 0; background:transparent; }
+  .cc-box:first-child { border-top:0; }
+  .cc-crossout-btn { position:static; order:initial; align-self:auto; margin-top:0; }
+  .cc-name { font-size:13px; }
+  .cc-due { font-size:11px; color:var(--ink-soft); text-transform:none; letter-spacing:0; }
+  .cc-payment-line { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center; }
+  .cc-topline { min-width:0; }
+  .cc-amount-wrap { display:flex; align-items:center; gap:6px; min-width:0; }
+  .cc-amount-wrap .cc-inline-label { color:var(--ink-soft); font-size:11px; white-space:nowrap; }
+  .cc-amount-wrap input { min-width:0; }
+  .cc-paid-btn { width:auto !important; min-width:92px; height:32px !important; font-size:11.5px !important; }
+
+  .stat-grid { display:none; }
+  .stamp { display:none; }
+  .actions { margin:18px 0 0; }
+  .actions .btn { min-height:40px; padding:9px 12px; }
+  footer { display:none; }
+
+  /* Mobile */
+  @media (max-width: 900px) {
+    :root { --sidebar:0px; }
+    body { padding-bottom:78px; }
+    .app-sidebar { display:none; }
+    .mobile-nav {
+      position:fixed; display:flex; left:0; right:0; bottom:0; height:72px; z-index:120;
+      background:rgba(8,13,20,.96); border-top:1px solid var(--border); backdrop-filter:blur(18px);
+      justify-content:space-around; padding:7px 8px max(7px, env(safe-area-inset-bottom));
+    }
+    .mobile-nav button { border:0; background:transparent; color:#8e99a7; font:500 10px var(--sans); display:flex; flex-direction:column; align-items:center; gap:4px; min-width:58px; cursor:pointer; }
+    .mobile-nav .m-icon { font-size:20px; line-height:1; }
+    .mobile-nav button.active { color:var(--accent); }
+    .wrap { margin:0; padding:0 12px 20px; }
+    header { height:64px; margin:0 -12px 12px; padding:0 14px; position:sticky; top:0; }
+    header::before { width:34px; height:34px; }
+    header > div:first-child h1 { font-size:17px; }
+    header > div:first-child { gap:9px; }
+    header > div:last-child { gap:7px !important; }
+    .toggle { width:40px; height:40px; }
+    .toggle::after { top:10px; left:10px; }
+
+    .wrap > .card[style*="Ledger History"] { display:none; }
+    #dashboardCard > div:last-child { display:block; }
+    #dashboardCard .dash-block:first-child { display:block; margin-bottom:10px; }
+    #dashboardCard .dash-block:nth-child(2) { padding:16px; margin-bottom:10px; }
+    #dashboardCard .dash-block:nth-child(2)::before { font-size:15px; margin-bottom:15px; }
+
+    .dashboard-summary { display:grid; grid-template-columns:1fr; gap:8px; margin:10px 0; }
+    .summary-tile { min-height:58px; padding:10px 12px; }
+    .summary-value { font-size:20px; margin-top:0; }
+    .summary-note { display:none; }
+    .salary-mini { display:none !important; }
+    #dashboardCard .dash-block:first-child::after {
+      content:""; display:block; height:1px; background:var(--border); margin-top:10px;
+    }
+
+    #detailWrap { display:flex !important; flex-direction:column; gap:12px; }
+    #detailWrap > .card { margin-bottom:0; width:100%; }
+    #otherExpensesCard { display:block; }
+    .card-head { padding:13px 14px 10px; }
+    .card-title { font-size:13px; }
+    .expense-row { padding:10px 14px; }
+    .expense-inputs-grid.with-date { grid-template-columns:1fr 1fr; }
+    .expense-inputs-grid.with-date .input-with-label:first-child { grid-column:1 / -1; }
+    .cc-grid { padding:0 14px 10px; }
+    .cc-box { padding:10px 0; }
+    .loan-row { grid-template-columns:1fr 1fr; gap:9px; }
+    .loan-field:nth-child(1) { grid-column:span 2; }
+    .rm-btn { grid-column:span 2; width:100%; }
+    .actions { flex-direction:column; }
+    .actions .btn { width:100%; }
   }
 
-  .btn {
-    width: 100%;
+  @media (max-width: 430px) {
+    .dashboard-summary { grid-template-columns:1fr; }
+    .summary-value { font-size:19px; }
+    .alloc-bar-head { font-size:12px; }
+    .alloc-bar-val { font-size:11px; }
+    .expense-inputs-grid.with-date { grid-template-columns:1fr; }
+    .expense-inputs-grid.with-date .input-with-label:first-child { grid-column:auto; }
   }
-}
-
-/* Better keyboard/focus visibility on desktop and mobile */
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* Respect devices that have a notch / home indicator */
-@supports (padding: max(0px)) {
-  body {
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-  }
-}
 
 </style>
 </head>
 <body>
+
+<aside class="app-sidebar" aria-label="Primary navigation">
+  <div class="sidebar-brand">
+    <div class="brand-mark">▣</div>
+    <div class="brand-name">Budget <span>Ledger</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="active" data-scroll="dashboardCard"><span class="nav-icon">⌂</span>Dashboard</button>
+    <button data-scroll="fixedAmountsCard"><span class="nav-icon">▤</span>Fixed</button>
+    <button data-scroll="variableExpensesCard"><span class="nav-icon">🛒</span>Variables</button>
+    <button data-scroll="creditCardsCard"><span class="nav-icon">▭</span>Cards</button>
+    <button data-scroll="otherExpensesCard"><span class="nav-icon">⌘</span>Other Expenses</button>
+    <button data-scroll="fixedLoanCard"><span class="nav-icon">▥</span>Loans</button>
+    <button data-scroll="modeToggle"><span class="nav-icon">⚙</span>Settings</button>
+  </nav>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-control"><span>♧ Enable Due Alarms</span><span class="side-switch"></span></div>
+  <div class="sidebar-footer">© 2025 Budget Ledger<br>All rights reserved.</div>
+</aside>
 <div class="wrap">
   <header>
     <div>
@@ -783,32 +625,10 @@ button {
     </div>
   </div>
 
-  <!-- DASHBOARD (always-on summary view) -->
+  <!-- DASHBOARD (responsive overview) -->
   <div class="card" id="dashboardCard">
-    <div class="card-head">
-      <div>
-        <span class="card-title">Dashboard</span>
-        <div class="card-hint" style="margin-top:2px;">This month at a glance</div>
-      </div>
-    </div>
-    <div style="padding: 4px 16px 18px;">
-      <div class="dash-block">
-        <div class="salary-highlight-block">
-          <div class="salary-col">
-            <span class="salary-col-label">Salary</span>
-            <input class="salary-input-big" id="salaryInput" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0">
-          </div>
-          <div class="salary-col">
-            <span class="salary-col-label">Expenses Paid</span>
-            <div class="salary-col-val" id="dashExpensesPaid">₱0</div>
-          </div>
-          <div class="salary-col">
-            <span class="salary-col-label">Spending Limit</span>
-            <div class="salary-col-val" id="dashSpendingLimit">₱0</div>
-          </div>
-        </div>
-        <div class="dash-subtext" id="dashRemaining"></div>
-      </div>
+    <div class="card-head"><span class="card-title">Dashboard</span></div>
+    <div style="padding:4px 16px 18px;">
       <div class="dash-block">
         <div class="dash-row">
           <span class="dash-label">Bills Paid</span>
@@ -818,8 +638,25 @@ button {
         <div class="dash-subtext" id="dashBillsSub">0 of 0 items paid</div>
       </div>
       <div class="dash-block">
-        <div class="dash-row"><span class="dash-label">Fund Allocation</span></div>
         <div id="allocBars"></div>
+      </div>
+      <div class="dashboard-summary">
+        <div class="summary-tile">
+          <div class="summary-label">Bills &amp; Expenses</div>
+          <div class="summary-value" id="fixedBillsValue">₱0</div>
+        </div>
+        <div class="summary-tile">
+          <div class="summary-label">Saved</div>
+          <div class="summary-value" id="savedValue">₱0</div>
+        </div>
+        <div class="summary-tile">
+          <div class="summary-label">Pending</div>
+          <div class="summary-value" id="pendingValue">0</div>
+        </div>
+      </div>
+      <div style="display:none" aria-hidden="true">
+        <div id="salary-hidden-compat"><span id="dashExpensesPaid">₱0</span><span id="dashSpendingLimit">₱0</span><input id="salaryInput" type="number" inputmode="decimal" min="0" step="0.01" style="display:none"></div>
+        <div id="dashRemaining"></div>
       </div>
     </div>
   </div>
@@ -828,15 +665,55 @@ button {
 
   <div id="detailWrap">
 
-    <!-- OTHER EXPENSES: log-style category, top of Fixed section -->
+    <!-- FIXED AMOUNTS CARD -->
+    <div class="card" id="fixedAmountsCard">
+      <div class="card-head">
+        <div>
+          <span class="card-title">Fixed Amounts</span>
+        </div>
+        <button class="action-btn-sm" id="editFixedBtn">Edit Locked Fields</button>
+      </div>
+      <div id="fixedRows"></div>
+    </div>
+    <!-- VARIABLE EXPENSES CARD -->
+    <div class="card" id="variableExpensesCard">
+      <div class="card-head">
+        <span class="card-title">Variables</span>
+      </div>
+      <div id="expenseRows"></div>
+    </div>
+    <!-- CREDIT CARD & ONLINE SHOPPING CARD -->
+    <div class="card" id="creditCardsCard">
+      <div class="card-head">
+        <div>
+          <span class="card-title">Credit Cards</span>
+        </div>
+      </div>
+      <div class="cc-grid" id="ccGrid"></div>
+    </div>
+    <!-- FIXED LOAN REGISTRY CARD -->
+    <div class="card" id="fixedLoanCard">
+      <div class="card-head">
+        <div>
+          <span class="card-title">Loans</span>
+        </div>
+        <span class="diff" id="loanTotalVal">₱0</span>
+      </div>
+      <div id="loanRows"></div>
+      <div class="add-loan-row"><button class="add-btn" id="addLoanBtn" disabled>+ Add custom loan item</button></div>
+    </div>
+    <!-- OTHER EXPENSES: collapsible log-style category -->
     <div class="card" id="otherExpensesCard">
       <div class="card-head">
         <div>
           <span class="card-title">Other Expenses</span>
-          <div class="card-hint" style="margin-top:2px;">Log ad-hoc spending as it happens</div>
         </div>
-        <span class="diff" id="otherDiff">₱0</span>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="diff" id="otherDiff">₱0</span>
+          <button class="action-btn-sm collapse-btn" id="toggleOtherExpensesBtn" type="button" aria-expanded="true">Hide</button>
+        </div>
       </div>
+      <div id="otherExpensesBody">
       <div style="padding: 0 16px 12px; display:flex; align-items:flex-end; justify-content:space-between; gap:12px;">
         <div class="input-with-label" style="max-width:220px;">
           <span class="input-sublabel">Planned</span>
@@ -853,66 +730,6 @@ button {
         <input class="amt" id="otherExpenseAmt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Cost">
         <button class="add-btn" id="addOtherExpenseBtn">+ Log expense</button>
       </div>
-    </div>
-
-    <!-- FIXED AMOUNTS & FIXED LOANS PROFILE CARD -->
-    <div class="card">
-      <div class="card-head">
-        <div>
-          <span class="card-title">Fixed Amounts</span>
-          <div class="card-hint" style="margin-top:2px;">Locked commitments & due dates</div>
-        </div>
-        <button class="action-btn-sm" id="editFixedBtn">Edit Locked Fields</button>
-      </div>
-      <div id="fixedRows"></div>
-      <div id="fixedLoanContainer">
-        <div style="padding: 10px 16px 4px; font-size: 11px; font-weight:700; text-transform:uppercase; color:var(--ink-soft); letter-spacing:0.04em;">Fixed Loan Registry</div>
-        <div id="loanRows"></div>
-        <div class="add-loan-row"><button class="add-btn" id="addLoanBtn" disabled>+ Add custom loan item</button></div>
-      </div>
-      <div class="loan-total-row"><span style="color:var(--ink-soft)">Total Fixed Loan Commitment</span><span id="loanTotalVal">₱0</span></div>
-    </div>
-
-    <!-- CREDIT CARD & ONLINE SHOPPING CARD -->
-    <div class="card">
-      <div class="card-head">
-        <div>
-          <span class="card-title">Credit Card &amp; Online Shopping</span>
-          <div class="card-hint" style="margin-top:2px;">Amount owed varies every month — cross out if it doesn't apply</div>
-        </div>
-      </div>
-      <div class="cc-grid" id="ccGrid"></div>
-    </div>
-
-    <!-- VARIABLE EXPENSES CARD -->
-    <div class="card">
-      <div class="card-head">
-        <span class="card-title">Variable Expenses</span>
-        <span class="card-hint">Flexible monthly adjustments</span>
-      </div>
-      <div id="expenseRows"></div>
-      <div class="add-loan-row"><button class="add-btn" id="addExpenseBtn">+ Add another category</button></div>
-    </div>
-
-    <!-- SAVINGS TRACKING CARD -->
-    <div class="card">
-      <div class="card-head">
-        <span class="card-title">Savings Allocation</span>
-        <span class="card-hint">Set aside this month</span>
-      </div>
-      <div class="savings-grid">
-        <div>
-          <div class="field-label">Planned</div>
-          <input class="amt" id="savingsPlanned" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0">
-        </div>
-        <div>
-          <div class="field-label">Actually saved</div>
-          <input class="amt" id="savingsActual" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0">
-        </div>
-        <div>
-          <div class="field-label">Due Date</div>
-          <input class="date-txt" id="savingsDueDate" type="text" placeholder="e.g. 30th">
-        </div>
       </div>
     </div>
 
@@ -925,7 +742,6 @@ button {
     <div class="stat"><div class="stat-label">Budget Variance</div><div class="stat-val" id="statVariance">₱0</div></div>
     <div class="stat"><div class="stat-label">Loan Payments</div><div class="stat-val" id="statLoans">₱0</div></div>
   </div>
-  <div class="dash-subtext" style="margin: -10px 0 16px; text-align:center;">Planned / Actual / Variance reflect Variable + Other Expenses only (Fixed bills &amp; Loans excluded) — this is what measures your savings performance.</div>
 
   <div class="stamp">
     <div class="stamp-label">Net Amount Saved This Month</div>
@@ -1001,6 +817,7 @@ button {
       fixedAmounts: FIXED_CATS.map(name => ({ name, planned: "", actual: "", dueDate: "" })),
       creditCards: CREDIT_CARD_DEFAULTS.map(c => ({ name: c.name, dueDate: c.dueDate, amount: "", actualAmount: "", crossedOut: false })),
       otherExpenses: { planned: "", entries: [] },
+      otherExpensesCollapsed: false,
       savingsPlanned: "",
       savingsActual: "",
       savingsDueDate: "",
@@ -1111,15 +928,13 @@ button {
     state.isEditingFixed = keepEditing;
     localStorage.setItem(STORE_KEY, JSON.stringify(state));
     document.getElementById('salaryInput').value = state.salary || "";
-    document.getElementById('savingsPlanned').value = state.savingsPlanned || "";
-    document.getElementById('savingsActual').value = state.savingsActual || "";
-    document.getElementById('savingsDueDate').value = state.savingsDueDate || "";
     document.getElementById('otherPlanned').value = state.otherExpenses.planned || "";
     renderFixedSection();
     renderExpenses();
     renderCreditCards();
     renderOtherExpenses();
     renderLoans();
+    applyOtherExpensesCollapse();
     applyDetailView();
     recalc();
     applyingRemoteUpdate = false;
@@ -1268,7 +1083,6 @@ button {
   const loanRowsEl = document.getElementById('loanRows');
   const editFixedBtn = document.getElementById('editFixedBtn');
   const addLoanBtn = document.getElementById('addLoanBtn');
-  const addExpenseBtn = document.getElementById('addExpenseBtn');
 
   function isPaidPair(planned, actual) {
     return num(actual) > 0 && num(actual) === num(planned);
@@ -1470,18 +1284,22 @@ button {
       const box = document.createElement('div');
       box.className = `cc-box ${crossed ? 'crossed-out' : ''}`;
       box.innerHTML = `
-        <button class="cc-crossout-btn ${crossed ? 'active' : ''}" type="button" title="${crossed ? 'Bill applies again — undo cross out' : "Doesn't apply / already settled this month"}">
-          ${crossed ? '↺ Undo' : '✕ N/A'}
-        </button>
-        <span class="cc-name"><span class="cat-icon">💳</span>${cc.name}<span class="severity-icon"></span></span>
-        <span class="cc-due">Due date: ${cc.dueDate || '-'}</span>
-        <div class="input-with-label">
-          <span class="input-sublabel">Amount</span>
-          <input class="amt cc-amt-input" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="${cc.amount}" ${crossed ? 'disabled' : ''}>
+        <div class="cc-topline">
+          <span class="cc-name"><span class="cat-icon">💳</span>${cc.name}<span class="severity-icon"></span></span>
+          <button class="cc-crossout-btn ${crossed ? 'active' : ''}" type="button" title="${crossed ? 'Bill applies again — undo cross out' : "Doesn't apply this month"}">
+            ${crossed ? '↺ Undo' : '✕ N/A'}
+          </button>
         </div>
-        <button class="action-btn-sm cc-paid-btn ${paid ? 'editing' : ''}" type="button" style="width:100%; height:30px; font-size:11.5px;" ${crossed ? 'disabled' : ''}>
-          ${paid ? 'Paid ✓' : 'Mark Paid'}
-        </button>
+        <span class="cc-due">Due Date: ${cc.dueDate || '-'}</span>
+        <div class="cc-payment-line">
+          <div class="cc-amount-wrap">
+            <span class="cc-inline-label">Amount:</span>
+            <input class="amt cc-amt-input" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="${cc.amount}" ${crossed ? 'disabled' : ''}>
+          </div>
+          <button class="action-btn-sm cc-paid-btn ${paid ? 'editing' : ''}" type="button" ${crossed ? 'disabled' : ''}>
+            ${paid ? 'Paid ✓' : 'Mark Paid'}
+          </button>
+        </div>
         ${crossed ? `<div class="cc-note">Not applicable this month</div>` : ''}
       `;
 
@@ -1670,61 +1488,57 @@ button {
   }
 
   function renderDashboard() {
-    // Bills coverage: fixed + variable + loans (Other Expenses is flexible, not counted as a "bill")
+    // Bills Paid: count every active fixed, variable, credit-card, loan and logged-other item.
     let totalBills = 0, paidBills = 0;
     state.fixedAmounts.forEach(f => { totalBills++; if (isPaidPair(f.planned, f.actual)) paidBills++; });
     state.expenses.forEach(e => { totalBills++; if (isVarLogged(e)) paidBills++; });
-    state.loans.forEach(l => { totalBills++; if (num(l.actualAmount) > 0) paidBills++; });
-    state.creditCards.forEach(cc => {
-      if (cc.crossedOut) return; // doesn't apply this month — excluded from coverage
-      totalBills++; if (isCreditPaid(cc)) paidBills++;
-    });
+    state.loans.forEach(l => { totalBills++; if (num(l.actualAmount) > 0 && num(l.actualAmount) === num(l.amount)) paidBills++; });
+    state.creditCards.forEach(cc => { if (!cc.crossedOut) { totalBills++; if (isCreditPaid(cc)) paidBills++; } });
+    state.otherExpenses.entries.forEach(() => { totalBills++; paidBills++; });
 
     const pct = totalBills ? Math.round((paidBills / totalBills) * 100) : 0;
     document.getElementById('dashBillsPct').textContent = pct + "%";
     document.getElementById('dashBillsBar').style.width = pct + "%";
-    document.getElementById('dashBillsSub').textContent = totalBills
-      ? `${paidBills} of ${totalBills} items paid · ${totalBills - paidBills} pending`
-      : "Add fixed, variable, or loan items to track coverage";
+    const billsSub = document.getElementById('dashBillsSub');
+    if (billsSub) billsSub.textContent = `${paidBills} of ${totalBills} items paid · ${Math.max(0, totalBills - paidBills)} pending`;
+    const pendingEl = document.getElementById('pendingValue');
+    if (pendingEl) pendingEl.textContent = String(Math.max(0, totalBills - paidBills));
 
-    // Fund allocation
     const fixedTotal = state.fixedAmounts.reduce((s, f) => s + num(f.planned), 0);
     const variableTotal = state.expenses.reduce((s, e) => s + num(e.planned), 0);
-    const otherTotal = num(state.otherExpenses.planned);
+    const otherTotal = num(state.otherExpenses.planned) || state.otherExpenses.entries.reduce((s, e) => s + num(e.amount), 0);
     const loansTotal = state.loans.reduce((s, l) => s + num(l.amount), 0);
-    const savingsTotal = num(state.savingsPlanned);
-    const grand = fixedTotal + variableTotal + otherTotal + loansTotal + savingsTotal;
+    const creditTotal = state.creditCards.reduce((s, cc) => s + (cc.crossedOut ? 0 : num(cc.amount)), 0);
+
+    const names = arr => arr.filter(x => x && x.trim()).join(', ') || 'No items yet';
+    const fixedPaid = state.fixedAmounts.filter(f => isPaidPair(f.planned, f.actual)).length;
+    const variablePaid = state.expenses.filter(e => isVarLogged(e)).length;
+    const creditActive = state.creditCards.filter(cc => !cc.crossedOut);
+    const creditPaid = creditActive.filter(isCreditPaid).length;
+    const loanPaid = state.loans.filter(l => num(l.actualAmount) > 0 && num(l.actualAmount) === num(l.amount)).length;
 
     const cats = [
-      { label: "Fixed Bills", val: fixedTotal, color: "var(--cat-fixed)" },
-      { label: "Variable", val: variableTotal, color: "var(--cat-variable)" },
-      { label: "Other", val: otherTotal, color: "var(--cat-other)" },
-      { label: "Loans", val: loansTotal, color: "var(--cat-loans)" },
-      { label: "Savings", val: savingsTotal, color: "var(--cat-savings)" }
+      { label: `Fixed Amounts (${names(state.fixedAmounts.map(x => x.name))})`, total: fixedTotal, paid: fixedPaid, count: state.fixedAmounts.length, color: "var(--cat-fixed)" },
+      { label: `Variables (${names(state.expenses.map(x => x.name))})`, total: variableTotal, paid: variablePaid, count: state.expenses.length, color: "var(--cat-variable)" },
+      { label: `Credit Cards (${names(creditActive.map(x => x.name))})`, total: creditTotal, paid: creditPaid, count: creditActive.length, color: "var(--cat-other)" },
+      { label: `Loans (${names(state.loans.map(x => x.name))})`, total: loansTotal, paid: loanPaid, count: state.loans.length, color: "var(--cat-loans)" }
     ];
 
     const barsEl = document.getElementById('allocBars');
     barsEl.innerHTML = "";
-
-    if (grand <= 0) {
-      barsEl.innerHTML = `<div class="dash-subtext" style="margin-top:0;">Add planned amounts across categories to see your allocation</div>`;
-    } else {
-      const maxVal = Math.max(...cats.map(c => c.val), 1);
-      cats.forEach(c => {
-        const pctOfTotal = (c.val / grand) * 100;
-        const barWidth = (c.val / maxVal) * 100;
-        const row = document.createElement('div');
-        row.className = 'alloc-bar-row';
-        row.innerHTML = `
-          <div class="alloc-bar-head">
-            <span class="alloc-bar-name"><span class="alloc-swatch" style="background:${c.color};"></span>${c.label}</span>
-            <span class="alloc-bar-val">${fmt(c.val, false)} · ${Math.round(pctOfTotal)}%</span>
-          </div>
-          <div class="alloc-bar-track"><div class="alloc-bar-fill" style="width:${barWidth}%; background:${c.color};"></div></div>
-        `;
-        barsEl.appendChild(row);
-      });
-    }
+    cats.forEach(c => {
+      const percent = c.count ? Math.round((c.paid / c.count) * 100) : 0;
+      const row = document.createElement('div');
+      row.className = 'alloc-bar-row';
+      row.innerHTML = `
+        <div class="alloc-bar-head">
+          <span class="alloc-bar-name">${c.label}</span>
+        </div>
+        <div class="alloc-bar-track"><div class="alloc-bar-fill" style="width:${percent}%; background:${c.color};"></div></div>
+        <div class="alloc-bar-val">${fmt(c.total, false)} · ${percent}%</div>
+      `;
+      barsEl.appendChild(row);
+    });
   }
 
   function updateSalarySection(expensesPaidTotal) {
@@ -1771,8 +1585,7 @@ button {
     const displayActual = varActual;
     const displayVariance = displayPlanned - displayActual;
 
-    const savingsActual = num(state.savingsActual);
-    const netSaved = fullVariance + savingsActual - totalLoansActual - totalCreditActual;
+    const netSaved = fullVariance - totalLoansActual - totalCreditActual;
 
     document.getElementById('statPlanned').textContent = fmt(displayPlanned, false);
     document.getElementById('statActual').textContent = fmt(displayActual, false);
@@ -1789,6 +1602,18 @@ button {
     netEl.style.color = netSaved < 0 ? 'var(--negative)' : 'var(--positive)';
 
     updateSalarySection(fullTotalActual);
+    const totalPayablePlanned = fixPlanned + varPlanned
+      + num(state.otherExpenses.planned)
+      + state.loans.reduce((s, l) => s + num(l.amount), 0)
+      + state.creditCards.reduce((s, cc) => s + (cc.crossedOut ? 0 : num(cc.amount)), 0);
+    const fixedBillsEl = document.getElementById('fixedBillsValue');
+    if (fixedBillsEl) fixedBillsEl.textContent = fmt(totalPayablePlanned, false);
+    const savedEl = document.getElementById('savedValue');
+    if (savedEl) {
+      savedEl.textContent = fmt(netSaved, false);
+      savedEl.classList.toggle('negative', netSaved < 0);
+      savedEl.classList.toggle('positive', netSaved >= 0);
+    }
     renderDashboard();
     updateOverdueVisualAlerts();
   }
@@ -1808,34 +1633,29 @@ button {
     renderLoans();
   });
 
-  addExpenseBtn.addEventListener('click', () => {
-    const name = prompt("Name of new variable expense category:");
-    if (!name || !name.trim()) return;
-    state.expenses.push({ name: name.trim(), planned: "", actual: "", dueDate: "" });
-    save(); renderExpenses(); recalc();
-  });
-
-  const savingsPlannedEl = document.getElementById('savingsPlanned');
-  const savingsActualEl = document.getElementById('savingsActual');
-  const savingsDueDateEl = document.getElementById('savingsDueDate');
-
-  savingsPlannedEl.value = state.savingsPlanned;
-  savingsActualEl.value = state.savingsActual;
-  savingsDueDateEl.value = state.savingsDueDate || "";
-
-  savingsPlannedEl.addEventListener('input', () => { state.savingsPlanned = savingsPlannedEl.value; save(); recalc(); });
-  savingsActualEl.addEventListener('input', () => { state.savingsActual = savingsActualEl.value; save(); recalc(); });
-  savingsDueDateEl.addEventListener('input', () => { state.savingsDueDate = savingsDueDateEl.value; save(); });
-
-  const salaryInputEl = document.getElementById('salaryInput');
-  salaryInputEl.value = state.salary || "";
-  salaryInputEl.addEventListener('input', () => { state.salary = salaryInputEl.value; save(); recalc(); });
+  // Income is no longer displayed in the dashboard. Existing salary data is retained for compatibility.
 
   const otherPlannedEl = document.getElementById('otherPlanned');
   otherPlannedEl.value = state.otherExpenses.planned || "";
   otherPlannedEl.addEventListener('input', () => {
     state.otherExpenses.planned = otherPlannedEl.value;
     save(); renderOtherExpenses(); recalc();
+  });
+
+  function applyOtherExpensesCollapse() {
+    const card = document.getElementById('otherExpensesCard');
+    const btn = document.getElementById('toggleOtherExpensesBtn');
+    if (!card || !btn) return;
+    const collapsed = !!state.otherExpensesCollapsed;
+    card.classList.toggle('collapsed', collapsed);
+    btn.textContent = collapsed ? 'Show' : 'Hide';
+    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  }
+
+  document.getElementById('toggleOtherExpensesBtn').addEventListener('click', () => {
+    state.otherExpensesCollapsed = !state.otherExpensesCollapsed;
+    save();
+    applyOtherExpensesCollapse();
   });
 
   document.getElementById('addOtherExpenseBtn').addEventListener('click', () => {
@@ -2039,7 +1859,6 @@ button {
     state.expenses.forEach(e => { if (parseDay(e.dueDate) === currentDay && (!e.actual || num(e.actual) === 0)) dueList.push(e.name); });
     state.loans.forEach(l => { if (parseDay(l.dueDate) === currentDay && (!l.actualAmount || num(l.actualAmount) === 0)) dueList.push(l.name || "Loan"); });
     state.creditCards.forEach(cc => { if (!cc.crossedOut && parseDay(cc.dueDate) === currentDay && (!cc.actualAmount || num(cc.actualAmount) === 0)) dueList.push(cc.name); });
-    if (parseDay(state.savingsDueDate) === currentDay && !(num(state.savingsActual) > 0)) dueList.push("Savings");
 
     if (dueList.length > 0) {
       new Notification("⏰ Budget Deadlines Today", { body: `You have ${dueList.length} unpaid items due today: ${dueList.join(", ")}` });
@@ -2091,7 +1910,6 @@ button {
       document.getElementById('newMonthBtn').style.display = "inline-block";
       editFixedBtn.style.display = "inline-block";
       addLoanBtn.disabled = !state.isEditingFixed;
-      addExpenseBtn.style.display = "inline-block";
       document.getElementById('addOtherExpenseBtn').disabled = false;
       if (deleteBtn) deleteBtn.style.display = "none";
     } else {
@@ -2102,14 +1920,10 @@ button {
         document.getElementById('newMonthBtn').style.display = "none";
         editFixedBtn.style.display = "none";
         addLoanBtn.disabled = true;
-        addExpenseBtn.style.display = "none";
         document.getElementById('addOtherExpenseBtn').disabled = true;
       }
       if (deleteBtn) deleteBtn.style.display = "inline-flex";
     }
-    savingsPlannedEl.value = state.savingsPlanned || "";
-    savingsActualEl.value = state.savingsActual || "";
-    savingsDueDateEl.value = state.savingsDueDate || "";
     otherPlannedEl.value = state.otherExpenses.planned || "";
     salaryInputEl.value = state.salary || "";
     renderFixedSection();
@@ -2117,6 +1931,7 @@ button {
     renderCreditCards();
     renderOtherExpenses();
     renderLoans();
+    applyOtherExpensesCollapse();
     applyDetailView();
     recalc();
   });
@@ -2203,8 +2018,6 @@ button {
     lines.push(["Other Expenses Planned vs Actual", "-", num(state.otherExpenses.planned), otherActualTotal, num(state.otherExpenses.planned) - otherActualTotal].join("\t"));
 
     lines.push("");
-    lines.push(["Savings Allocation", "Due Date", "Planned", "Actual", ""].join("\t"));
-    lines.push(["Savings Milestone", state.savingsDueDate || "-", num(state.savingsPlanned), num(state.savingsActual), ""].join("\t"));
     lines.push("");
     lines.push(["Loans Profile Ledger", "Monthly Installment Amount", "Due Date Schedule", "Repayment Progress Counter", "Actual Paid"].join("\t"));
     state.loans.forEach(l => {
@@ -2222,7 +2035,7 @@ button {
     const totalPlanned = varPlanned + fixPlanned;
     const totalActual = varActual + fixActual + totalLoansActual + totalCreditActualForExport;
     const variance = totalPlanned - totalActual;
-    const netSaved = variance + num(state.savingsActual) - totalLoansActual - totalCreditActualForExport;
+    const netSaved = variance - totalLoansActual - totalCreditActualForExport;
 
     lines.push(["Total Planned Matrix Balance", totalPlanned].join("\t"));
     lines.push(["Total Actual Tracked Cost Balance", totalActual].join("\t"));
@@ -2289,6 +2102,22 @@ button {
     recalc();
   });
 
+  // Responsive navigation: desktop sidebar + mobile bottom nav
+  document.querySelectorAll('[data-scroll]').forEach(btn => {
+    btn.addEventListener('click', (event) => {
+      event.preventDefault();
+      const id = btn.getAttribute('data-scroll');
+      const target = document.getElementById(id);
+      if (target) {
+        const headerOffset = window.innerWidth <= 900 ? 76 : 88;
+        const y = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+      }
+      document.querySelectorAll('[data-scroll]').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll(`[data-scroll="${id}"]`).forEach(x => x.classList.add('active'));
+    });
+  });
+
   // Initial Boot Sequence
   initSync();
   syncMonthSelector();
@@ -2297,6 +2126,7 @@ button {
   renderCreditCards();
   renderOtherExpenses();
   renderLoans();
+  applyOtherExpensesCollapse();
   applyDetailView();
   recalc();
 
@@ -2310,5 +2140,35 @@ button {
     });
   }
 </script>
+
+<script>
+(function () {
+  function setupMobileNavigation() {
+    const nav = document.querySelector('.mobile-nav');
+    if (!nav) return;
+    nav.addEventListener('click', function (event) {
+      const button = event.target.closest('button[data-scroll]');
+      if (!button) return;
+      const target = document.getElementById(button.getAttribute('data-scroll'));
+      if (!target) return;
+      nav.querySelectorAll('button').forEach(function (b) { b.classList.toggle('active', b === button); });
+      const header = document.querySelector('header');
+      const headerHeight = header ? header.getBoundingClientRect().height : 64;
+      const top = target.getBoundingClientRect().top + window.pageYOffset - headerHeight - 12;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupMobileNavigation);
+  else setupMobileNavigation();
+})();
+</script>
+<nav class="mobile-nav" aria-label="Mobile navigation">
+  <button class="active" data-scroll="dashboardCard"><span class="m-icon">⌂</span>Dashboard</button>
+  <button data-scroll="fixedAmountsCard"><span class="m-icon">🧾</span>Fixed</button>
+  <button data-scroll="variableExpensesCard"><span class="m-icon">🛒</span>Variables</button>
+  <button data-scroll="creditCardsCard"><span class="m-icon">▭</span>Cards</button>
+  <button data-scroll="fixedLoanCard"><span class="m-icon">▥</span>Loans</button>
+</nav>
+
 </body>
 </html>
